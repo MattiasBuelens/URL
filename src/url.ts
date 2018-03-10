@@ -27,10 +27,10 @@ function invalid(this: jURL) {
 
 function IDNAToASCII(this: jURL, h: string): string {
   if ('' == h) {
-    invalid.call(this)
+    invalid.call(this);
   }
   // XXX
-  return h.toLowerCase()
+  return h.toLowerCase();
 }
 
 function percentEscape(c: string): string {
@@ -73,7 +73,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
       errors: string[] = [];
 
   function err(message: string) {
-    errors.push(message)
+    errors.push(message);
   }
 
   loop: while ((input[cursor - 1] != EOF || cursor == 0) && !this._isInvalid) {
@@ -122,7 +122,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         } else if (EOF == c) {
           break loop;
         } else {
-          err('Code point not allowed in scheme: ' + c)
+          err('Code point not allowed in scheme: ' + c);
           break loop;
         }
         break;
@@ -158,7 +158,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         } else {
           err('Expected /, got: ' + c);
           state = 'relative';
-          continue
+          continue;
         }
         break;
 
