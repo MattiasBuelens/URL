@@ -447,7 +447,21 @@ function clear() {
 
 // Does not process domain names or IP addresses.
 // Does not handle encoding for the query parameter.
-function jURL(url, base /* , encoding */) {
+class jURL {
+  _url: string;
+  _scheme: string;
+  _schemeData: string;
+  _username: string;
+  _password: string | null;
+  _host: string;
+  _port: string;
+  _path: string[];
+  _query: string;
+  _fragment: string;
+  _isInvalid: boolean;
+  _isRelative: boolean;
+
+constructor(url, base /* , encoding */) {
   if (base !== undefined && !(base instanceof jURL))
     base = new jURL(String(base));
 
@@ -460,10 +474,9 @@ function jURL(url, base /* , encoding */) {
   parse.call(this, input, null, base);
 }
 
-jURL.prototype = {
-  toString: function () {
+  toString() {
     return this.href;
-  },
+  }
   get href() {
     if (this._isInvalid)
       return this._url;
@@ -477,64 +490,64 @@ jURL.prototype = {
     return this.protocol +
         (this._isRelative ? '//' + authority + this.host : '') +
         this.pathname + this._query + this._fragment;
-  },
+  }
   set href(href) {
     clear.call(this);
     parse.call(this, href);
-  },
+  }
 
   get protocol() {
     return this._scheme + ':';
-  },
+  }
   set protocol(protocol) {
     if (this._isInvalid)
       return;
     parse.call(this, protocol + ':', 'scheme start');
-  },
+  }
 
   get host() {
     return this._isInvalid ? '' : this._port ?
         this._host + ':' + this._port : this._host;
-  },
+  }
   set host(host) {
     if (this._isInvalid || !this._isRelative)
       return;
     parse.call(this, host, 'host');
-  },
+  }
 
   get hostname() {
     return this._host;
-  },
+  }
   set hostname(hostname) {
     if (this._isInvalid || !this._isRelative)
       return;
     parse.call(this, hostname, 'hostname');
-  },
+  }
 
   get port() {
     return this._port;
-  },
+  }
   set port(port) {
     if (this._isInvalid || !this._isRelative)
       return;
     parse.call(this, port, 'port');
-  },
+  }
 
   get pathname() {
     return this._isInvalid ? '' : this._isRelative ?
         '/' + this._path.join('/') : this._schemeData;
-  },
+  }
   set pathname(pathname) {
     if (this._isInvalid || !this._isRelative)
       return;
     this._path = [];
     parse.call(this, pathname, 'relative path start');
-  },
+  }
 
   get search() {
     return this._isInvalid || !this._query || '?' == this._query ?
         '' : this._query;
-  },
+  }
   set search(search) {
     if (this._isInvalid || !this._isRelative)
       return;
@@ -542,12 +555,12 @@ jURL.prototype = {
     if ('?' == search[0])
       search = search.slice(1);
     parse.call(this, search, 'query');
-  },
+  }
 
   get hash() {
     return this._isInvalid || !this._fragment || '#' == this._fragment ?
         '' : this._fragment;
-  },
+  }
   set hash(hash) {
     if (this._isInvalid)
       return;
@@ -555,7 +568,7 @@ jURL.prototype = {
     if ('#' == hash[0])
       hash = hash.slice(1);
     parse.call(this, hash, 'fragment');
-  },
+  }
 
   get origin() {
     let host;
@@ -580,6 +593,6 @@ jURL.prototype = {
     }
     return this._scheme + '://' + host;
   }
-};
+}
 
 export { jURL };
