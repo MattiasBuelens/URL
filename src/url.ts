@@ -16,16 +16,16 @@ relativePathDotMapping['.%2e'] = '..';
 relativePathDotMapping['%2e.'] = '..';
 relativePathDotMapping['%2e%2e'] = '..';
 
-function isRelativeScheme(scheme) {
+function isRelativeScheme(scheme: string): boolean {
   return relative[scheme] !== undefined;
 }
 
-function invalid() {
+function invalid(this: jURL) {
   clear.call(this);
   this._isInvalid = true;
 }
 
-function IDNAToASCII(h) {
+function IDNAToASCII(this: jURL, h: string): string {
   if ('' == h) {
     invalid.call(this)
   }
@@ -33,7 +33,7 @@ function IDNAToASCII(h) {
   return h.toLowerCase()
 }
 
-function percentEscape(c) {
+function percentEscape(c: string): string {
   const unicode = c.charCodeAt(0);
   if (unicode > 0x20 &&
       unicode < 0x7F &&
@@ -45,7 +45,7 @@ function percentEscape(c) {
   return encodeURIComponent(c);
 }
 
-function percentEscapeQuery(c) {
+function percentEscapeQuery(c: string) {
   // XXX This actually needs to encode c using encoding and then
   // convert the bytes one-by-one.
 
@@ -64,15 +64,15 @@ const EOF = undefined,
     ALPHA = /[a-zA-Z]/,
     ALPHANUMERIC = /[a-zA-Z0-9\+\-\.]/;
 
-function parse(input, stateOverride, base) {
+function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
   let state = stateOverride || 'scheme start',
       cursor = 0,
       buffer = '',
       seenAt = false,
       seenBracket = false,
-      errors = [];
+      errors: string[] = [];
 
-  function err(message) {
+  function err(message: string) {
     errors.push(message)
   }
 
@@ -431,7 +431,7 @@ function parse(input, stateOverride, base) {
   }
 }
 
-function clear() {
+function clear(this: jURL) {
   this._scheme = '';
   this._schemeData = '';
   this._username = '';
@@ -461,7 +461,7 @@ class jURL {
   _isInvalid: boolean;
   _isRelative: boolean;
 
-  constructor(url, base /* , encoding */) {
+  constructor(url: string, base?: string | jURL /* , encoding */) {
     if (base !== undefined && !(base instanceof jURL))
       base = new jURL(String(base));
 
@@ -474,11 +474,11 @@ class jURL {
     parse.call(this, input, null, base);
   }
 
-  toString() {
+  toString(): string {
     return this.href;
   }
 
-  get href() {
+  get href(): string {
     if (this._isInvalid)
       return this._url;
 
@@ -493,70 +493,70 @@ class jURL {
         this.pathname + this._query + this._fragment;
   }
 
-  set href(href) {
+  set href(href: string) {
     clear.call(this);
     parse.call(this, href);
   }
 
-  get protocol() {
+  get protocol(): string {
     return this._scheme + ':';
   }
 
-  set protocol(protocol) {
+  set protocol(protocol: string) {
     if (this._isInvalid)
       return;
     parse.call(this, protocol + ':', 'scheme start');
   }
 
-  get host() {
+  get host(): string {
     return this._isInvalid ? '' : this._port ?
         this._host + ':' + this._port : this._host;
   }
 
-  set host(host) {
+  set host(host: string) {
     if (this._isInvalid || !this._isRelative)
       return;
     parse.call(this, host, 'host');
   }
 
-  get hostname() {
+  get hostname(): string {
     return this._host;
   }
 
-  set hostname(hostname) {
+  set hostname(hostname: string) {
     if (this._isInvalid || !this._isRelative)
       return;
     parse.call(this, hostname, 'hostname');
   }
 
-  get port() {
+  get port(): string {
     return this._port;
   }
 
-  set port(port) {
+  set port(port: string) {
     if (this._isInvalid || !this._isRelative)
       return;
     parse.call(this, port, 'port');
   }
 
-  get pathname() {
+  get pathname(): string {
     return this._isInvalid ? '' : this._isRelative ?
         '/' + this._path.join('/') : this._schemeData;
   }
 
-  set pathname(pathname) {
+  set pathname(pathname: string) {
     if (this._isInvalid || !this._isRelative)
       return;
     this._path = [];
     parse.call(this, pathname, 'relative path start');
   }
 
-  get search() {
+  get search(): string {
     return this._isInvalid || !this._query || '?' == this._query ?
         '' : this._query;
   }
 
-  set search(search) {
+  set search(search: string) {
     if (this._isInvalid || !this._isRelative)
       return;
     this._query = '?';
@@ -565,12 +565,12 @@ class jURL {
     parse.call(this, search, 'query');
   }
 
-  get hash() {
+  get hash(): string {
     return this._isInvalid || !this._fragment || '#' == this._fragment ?
         '' : this._fragment;
   }
 
-  set hash(hash) {
+  set hash(hash): string {
     if (this._isInvalid)
       return;
     this._fragment = '#';
@@ -579,7 +579,7 @@ class jURL {
     parse.call(this, hash, 'fragment');
   }
 
-  get origin() {
+  get origin(): string {
     let host;
     if (this._isInvalid || !this._scheme) {
       return '';
