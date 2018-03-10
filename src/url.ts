@@ -86,7 +86,7 @@ const enum ParserState {
   FRAGMENT
 }
 
-function parse(url: jURL, input: string, stateOverride?: ParserState, base?: jURL) {
+function parse(url: jURL, input: string, stateOverride?: ParserState | null, base?: jURL) {
   let state: ParserState = stateOverride || ParserState.SCHEME_START,
       cursor = 0,
       buffer = '',
@@ -592,7 +592,7 @@ class jURL {
         '' : this._fragment;
   }
 
-  set hash(hash): string {
+  set hash(hash: string) {
     if (this._isInvalid)
       return;
     this._fragment = '#';
