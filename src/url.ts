@@ -461,22 +461,23 @@ class jURL {
   _isInvalid: boolean;
   _isRelative: boolean;
 
-constructor(url, base /* , encoding */) {
-  if (base !== undefined && !(base instanceof jURL))
-    base = new jURL(String(base));
+  constructor(url, base /* , encoding */) {
+    if (base !== undefined && !(base instanceof jURL))
+      base = new jURL(String(base));
 
-  this._url = url;
-  clear.call(this);
+    this._url = url;
+    clear.call(this);
 
-  const input = url.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '');
-  // encoding = encoding || 'utf-8'
+    const input = url.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '');
+    // encoding = encoding || 'utf-8'
 
-  parse.call(this, input, null, base);
-}
+    parse.call(this, input, null, base);
+  }
 
   toString() {
     return this.href;
   }
+
   get href() {
     if (this._isInvalid)
       return this._url;
@@ -491,6 +492,7 @@ constructor(url, base /* , encoding */) {
         (this._isRelative ? '//' + authority + this.host : '') +
         this.pathname + this._query + this._fragment;
   }
+
   set href(href) {
     clear.call(this);
     parse.call(this, href);
@@ -499,6 +501,7 @@ constructor(url, base /* , encoding */) {
   get protocol() {
     return this._scheme + ':';
   }
+
   set protocol(protocol) {
     if (this._isInvalid)
       return;
@@ -509,6 +512,7 @@ constructor(url, base /* , encoding */) {
     return this._isInvalid ? '' : this._port ?
         this._host + ':' + this._port : this._host;
   }
+
   set host(host) {
     if (this._isInvalid || !this._isRelative)
       return;
@@ -518,6 +522,7 @@ constructor(url, base /* , encoding */) {
   get hostname() {
     return this._host;
   }
+
   set hostname(hostname) {
     if (this._isInvalid || !this._isRelative)
       return;
@@ -527,6 +532,7 @@ constructor(url, base /* , encoding */) {
   get port() {
     return this._port;
   }
+
   set port(port) {
     if (this._isInvalid || !this._isRelative)
       return;
@@ -537,6 +543,7 @@ constructor(url, base /* , encoding */) {
     return this._isInvalid ? '' : this._isRelative ?
         '/' + this._path.join('/') : this._schemeData;
   }
+
   set pathname(pathname) {
     if (this._isInvalid || !this._isRelative)
       return;
@@ -548,6 +555,7 @@ constructor(url, base /* , encoding */) {
     return this._isInvalid || !this._query || '?' == this._query ?
         '' : this._query;
   }
+
   set search(search) {
     if (this._isInvalid || !this._isRelative)
       return;
@@ -561,6 +569,7 @@ constructor(url, base /* , encoding */) {
     return this._isInvalid || !this._fragment || '#' == this._fragment ?
         '' : this._fragment;
   }
+
   set hash(hash) {
     if (this._isInvalid)
       return;
