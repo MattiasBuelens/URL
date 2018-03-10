@@ -8,11 +8,14 @@
   },
   "license": "SAX-PD",
   "scripts": {
+    "build": "rollup -c",
     "test": "node run-web-platform-tests.js",
     "sync-wpt": "git submodule update --init"
   },
   "devDependencies": {
     "minimatch": "^3.0.4",
+    "rollup": "^0.56.5",
+    "rollup-plugin-typescript": "^0.8.1",
     "typescript": "^2.7.2",
     "wpt-runner": "^2.2.0"
   }
