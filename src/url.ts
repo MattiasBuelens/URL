@@ -1,7 +1,7 @@
 /* Any copyright is dedicated to the Public Domain.
 * http://creativecommons.org/publicdomain/zero/1.0/ */
 
-var relative = Object.create(null);
+const relative = Object.create(null);
 relative['ftp'] = 21;
 relative['file'] = 0;
 relative['gopher'] = 70;
@@ -10,7 +10,7 @@ relative['https'] = 443;
 relative['ws'] = 80;
 relative['wss'] = 443;
 
-var relativePathDotMapping = Object.create(null);
+const relativePathDotMapping = Object.create(null);
 relativePathDotMapping['%2e'] = '.';
 relativePathDotMapping['.%2e'] = '..';
 relativePathDotMapping['%2e.'] = '..';
@@ -34,7 +34,7 @@ function IDNAToASCII(h) {
 }
 
 function percentEscape(c) {
-  var unicode = c.charCodeAt(0);
+  const unicode = c.charCodeAt(0);
   if (unicode > 0x20 &&
       unicode < 0x7F &&
       // " # < > ? `
@@ -49,7 +49,7 @@ function percentEscapeQuery(c) {
   // XXX This actually needs to encode c using encoding and then
   // convert the bytes one-by-one.
 
-  var unicode = c.charCodeAt(0);
+  const unicode = c.charCodeAt(0);
   if (unicode > 0x20 &&
       unicode < 0x7F &&
       // " # < > ` (do not escape '?')
@@ -60,24 +60,24 @@ function percentEscapeQuery(c) {
   return encodeURIComponent(c);
 }
 
-var EOF = undefined,
+const EOF = undefined,
     ALPHA = /[a-zA-Z]/,
     ALPHANUMERIC = /[a-zA-Z0-9\+\-\.]/;
 
 function parse(input, stateOverride, base) {
-  function err(message) {
-    errors.push(message)
-  }
-
-  var state = stateOverride || 'scheme start',
+  let state = stateOverride || 'scheme start',
       cursor = 0,
       buffer = '',
       seenAt = false,
       seenBracket = false,
       errors = [];
 
+  function err(message) {
+    errors.push(message)
+  }
+
   loop: while ((input[cursor - 1] != EOF || cursor == 0) && !this._isInvalid) {
-    var c = input[cursor];
+    const c = input[cursor];
     switch (state) {
       case 'scheme start':
         if (c && ALPHA.test(c)) {
@@ -196,8 +196,8 @@ function parse(input, stateOverride, base) {
           this._password = base._password;
           state = 'fragment';
         } else {
-          var nextC = input[cursor + 1]
-          var nextNextC = input[cursor + 2]
+          const nextC = input[cursor + 1];
+          const nextNextC = input[cursor + 2];
           if (
               'file' != this._scheme || !ALPHA.test(c) ||
               (nextC != ':' && nextC != '|') ||
@@ -270,8 +270,8 @@ function parse(input, stateOverride, base) {
             buffer += '%40';
           }
           seenAt = true;
-          for (var i = 0; i < buffer.length; i++) {
-            var cp = buffer[i];
+          for (let i = 0; i < buffer.length; i++) {
+            const cp = buffer[i];
             if ('\t' == cp || '\n' == cp || '\r' == cp) {
               err('Invalid whitespace in authority.');
               continue;
@@ -281,7 +281,7 @@ function parse(input, stateOverride, base) {
               this._password = '';
               continue;
             }
-            var tempC = percentEscape(cp);
+            const tempC = percentEscape(cp);
             (null !== this._password) ? this._password += tempC : this._username += tempC;
           }
           buffer = '';
@@ -349,7 +349,7 @@ function parse(input, stateOverride, base) {
           buffer += c;
         } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c || stateOverride) {
           if ('' != buffer) {
-            var temp = parseInt(buffer, 10);
+            const temp = parseInt(buffer, 10);
             if (temp != relative[this._scheme]) {
               this._port = temp + '';
             }
@@ -381,7 +381,7 @@ function parse(input, stateOverride, base) {
           if ('\\' == c) {
             err('\\ not allowed in relative path.');
           }
-          var tmp;
+          let tmp;
           if (tmp = relativePathDotMapping[buffer.toLowerCase()]) {
             buffer = tmp;
           }
@@ -454,7 +454,7 @@ function jURL(url, base /* , encoding */) {
   this._url = url;
   clear.call(this);
 
-  var input = url.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '');
+  const input = url.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '');
   // encoding = encoding || 'utf-8'
 
   parse.call(this, input, null, base);
@@ -468,7 +468,7 @@ jURL.prototype = {
     if (this._isInvalid)
       return this._url;
 
-    var authority = '';
+    let authority = '';
     if ('' != this._username || null != this._password) {
       authority = this._username +
           (null != this._password ? ':' + this._password : '') + '@';
@@ -558,7 +558,7 @@ jURL.prototype = {
   },
 
   get origin() {
-    var host;
+    let host;
     if (this._isInvalid || !this._scheme) {
       return '';
     }
