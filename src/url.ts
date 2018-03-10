@@ -1,8 +1,10 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
-(function(scope) {
-  'use strict';
+const scope = typeof self !== 'undefined' ? self
+    : typeof window !== 'undefined' ? window
+        : typeof global !== 'undefined' ? global
+            : undefined;
 
   // feature detect for URL constructor
   var hasWorkingUrl = false;
@@ -611,6 +613,4 @@
     };
   }
 
-  scope.URL = jURL;
-
-})(module.exports);
+export { jURL as URL }
