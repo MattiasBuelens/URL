@@ -1,5 +1,9 @@
 import { jURL } from "./url";
 
+declare global {
+  const global: any;
+}
+
 const scope = typeof self !== 'undefined' ? self
     : typeof window !== 'undefined' ? window
         : typeof global !== 'undefined' ? global
@@ -18,11 +22,11 @@ if (!scope.forceJURL) {
   }
 }
 
-let URL;
+let URL: typeof window.URL;
 if (hasWorkingUrl) {
   URL = OriginalURL;
 } else {
-  URL = jURL;
+  URL = jURL as any;
   // Copy over the static methods
   if (OriginalURL) {
     URL.createObjectURL = function (blob) {
