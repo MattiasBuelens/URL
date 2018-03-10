@@ -1,6 +1,6 @@
 {
   "name": "url",
-  "main": "url.js",
+  "main": "dist/url.js",
   "homepage": "https://github.com/Polymer/URL",
   "authors": [
     "https://github.com/Polymer/URL/graphs/contributors"
