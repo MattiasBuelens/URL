@@ -613,4 +613,4 @@
 
   scope.URL = jURL;
 
-})(window);
+})(module.exports);
