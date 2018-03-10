@@ -64,8 +64,30 @@ const EOF = undefined,
     ALPHA = /[a-zA-Z]/,
     ALPHANUMERIC = /[a-zA-Z0-9\+\-\.]/;
 
-function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
-  let state = stateOverride || 'scheme start',
+const enum ParserState {
+  SCHEME_START,
+  SCHEME,
+  SCHEME_DATA,
+  NO_SCHEME,
+  RELATIVE_OR_AUTHORITY,
+  RELATIVE,
+  RELATIVE_SLASH,
+  AUTHORITY_FIRST_SLASH,
+  AUTHORITY_SECOND_SLASH,
+  AUTHORITY_IGNORE_SLASHES,
+  AUTHORITY,
+  FILE_HOST,
+  HOST,
+  HOSTNAME,
+  PORT,
+  RELATIVE_PATH_START,
+  RELATIVE_PATH,
+  QUERY,
+  FRAGMENT
+}
+
+function parse(this: jURL, input: string, stateOverride?: ParserState, base?: jURL) {
+  let state: ParserState = stateOverride || ParserState.SCHEME_START,
       cursor = 0,
       buffer = '',
       seenAt = false,
@@ -79,13 +101,13 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
   loop: while ((input[cursor - 1] != EOF || cursor == 0) && !this._isInvalid) {
     const c = input[cursor];
     switch (state) {
-      case 'scheme start':
+      case ParserState.SCHEME_START:
         if (c && ALPHA.test(c)) {
           buffer += c.toLowerCase(); // ASCII-safe
-          state = 'scheme';
+          state = ParserState.SCHEME;
         } else if (!stateOverride) {
           buffer = '';
-          state = 'no scheme';
+          state = ParserState.NO_SCHEME;
           continue;
         } else {
           err('Invalid scheme.');
@@ -93,7 +115,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         }
         break;
 
-      case 'scheme':
+      case ParserState.SCHEME:
         if (c && ALPHANUMERIC.test(c)) {
           buffer += c.toLowerCase(); // ASCII-safe
         } else if (':' == c) {
@@ -106,18 +128,18 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
             this._isRelative = true;
           }
           if ('file' == this._scheme) {
-            state = 'relative';
+            state = ParserState.RELATIVE;
           } else if (this._isRelative && base && base._scheme == this._scheme) {
-            state = 'relative or authority';
+            state = ParserState.RELATIVE_OR_AUTHORITY;
           } else if (this._isRelative) {
-            state = 'authority first slash';
+            state = ParserState.AUTHORITY_FIRST_SLASH;
           } else {
-            state = 'scheme data';
+            state = ParserState.SCHEME_DATA;
           }
         } else if (!stateOverride) {
           buffer = '';
           cursor = 0;
-          state = 'no scheme';
+          state = ParserState.NO_SCHEME;
           continue;
         } else if (EOF == c) {
           break loop;
@@ -127,13 +149,13 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         }
         break;
 
-      case 'scheme data':
+      case ParserState.SCHEME_DATA:
         if ('?' == c) {
           this._query = '?';
-          state = 'query';
+          state = ParserState.QUERY;
         } else if ('#' == c) {
           this._fragment = '#';
-          state = 'fragment';
+          state = ParserState.FRAGMENT;
         } else {
           // XXX error handling
           if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
@@ -142,27 +164,27 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         }
         break;
 
-      case 'no scheme':
+      case ParserState.NO_SCHEME:
         if (!base || !(isRelativeScheme(base._scheme))) {
           err('Missing scheme.');
           invalid.call(this);
         } else {
-          state = 'relative';
+          state = ParserState.RELATIVE;
           continue;
         }
         break;
 
-      case 'relative or authority':
+      case ParserState.RELATIVE_OR_AUTHORITY:
         if ('/' == c && '/' == input[cursor + 1]) {
-          state = 'authority ignore slashes';
+          state = ParserState.AUTHORITY_IGNORE_SLASHES;
         } else {
           err('Expected /, got: ' + c);
-          state = 'relative';
+          state = ParserState.RELATIVE;
           continue;
         }
         break;
 
-      case 'relative':
+      case ParserState.RELATIVE:
         this._isRelative = true;
         if ('file' != this._scheme)
           this._scheme = base._scheme;
@@ -177,7 +199,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         } else if ('/' == c || '\\' == c) {
           if ('\\' == c)
             err('\\ is an invalid code point.');
-          state = 'relative slash';
+          state = ParserState.RELATIVE_SLASH;
         } else if ('?' == c) {
           this._host = base._host;
           this._port = base._port;
@@ -185,7 +207,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
           this._query = '?';
           this._username = base._username;
           this._password = base._password;
-          state = 'query';
+          state = ParserState.QUERY;
         } else if ('#' == c) {
           this._host = base._host;
           this._port = base._port;
@@ -194,7 +216,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
           this._fragment = '#';
           this._username = base._username;
           this._password = base._password;
-          state = 'fragment';
+          state = ParserState.FRAGMENT;
         } else {
           const nextC = input[cursor + 1];
           const nextNextC = input[cursor + 2];
@@ -209,20 +231,20 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
             this._path = base._path.slice();
             this._path.pop();
           }
-          state = 'relative path';
+          state = ParserState.RELATIVE_PATH;
           continue;
         }
         break;
 
-      case 'relative slash':
+      case ParserState.RELATIVE_SLASH:
         if ('/' == c || '\\' == c) {
           if ('\\' == c) {
             err('\\ is an invalid code point.');
           }
           if ('file' == this._scheme) {
-            state = 'file host';
+            state = ParserState.FILE_HOST;
           } else {
-            state = 'authority ignore slashes';
+            state = ParserState.AUTHORITY_IGNORE_SLASHES;
           }
         } else {
           if ('file' != this._scheme) {
@@ -231,39 +253,39 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
             this._username = base._username;
             this._password = base._password;
           }
-          state = 'relative path';
+          state = ParserState.RELATIVE_PATH;
           continue;
         }
         break;
 
-      case 'authority first slash':
+      case ParserState.AUTHORITY_FIRST_SLASH:
         if ('/' == c) {
-          state = 'authority second slash';
+          state = ParserState.AUTHORITY_SECOND_SLASH;
         } else {
           err("Expected '/', got: " + c);
-          state = 'authority ignore slashes';
+          state = ParserState.AUTHORITY_IGNORE_SLASHES;
           continue;
         }
         break;
 
-      case 'authority second slash':
-        state = 'authority ignore slashes';
+      case ParserState.AUTHORITY_SECOND_SLASH:
+        state = ParserState.AUTHORITY_IGNORE_SLASHES;
         if ('/' != c) {
           err("Expected '/', got: " + c);
           continue;
         }
         break;
 
-      case 'authority ignore slashes':
+      case ParserState.AUTHORITY_IGNORE_SLASHES:
         if ('/' != c && '\\' != c) {
-          state = 'authority';
+          state = ParserState.AUTHORITY;
           continue;
         } else {
           err('Expected authority, got: ' + c);
         }
         break;
 
-      case 'authority':
+      case ParserState.AUTHORITY:
         if ('@' == c) {
           if (seenAt) {
             err('@ already seen.');
@@ -288,23 +310,23 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
           cursor -= buffer.length;
           buffer = '';
-          state = 'host';
+          state = ParserState.HOST;
           continue;
         } else {
           buffer += c;
         }
         break;
 
-      case 'file host':
+      case ParserState.FILE_HOST:
         if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
           if (buffer.length == 2 && ALPHA.test(buffer[0]) && (buffer[1] == ':' || buffer[1] == '|')) {
-            state = 'relative path';
+            state = ParserState.RELATIVE_PATH;
           } else if (buffer.length == 0) {
-            state = 'relative path start';
+            state = ParserState.RELATIVE_PATH_START;
           } else {
             this._host = IDNAToASCII.call(this, buffer);
             buffer = '';
-            state = 'relative path start';
+            state = ParserState.RELATIVE_PATH_START;
           }
           continue;
         } else if ('\t' == c || '\n' == c || '\r' == c) {
@@ -314,20 +336,20 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         }
         break;
 
-      case 'host':
-      case 'hostname':
+      case ParserState.HOST:
+      case ParserState.HOSTNAME:
         if (':' == c && !seenBracket) {
           // XXX host parsing
           this._host = IDNAToASCII.call(this, buffer);
           buffer = '';
-          state = 'port';
-          if ('hostname' == stateOverride) {
+          state = ParserState.PORT;
+          if (ParserState.HOSTNAME == stateOverride) {
             break loop;
           }
         } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
           this._host = IDNAToASCII.call(this, buffer);
           buffer = '';
-          state = 'relative path start';
+          state = ParserState.RELATIVE_PATH_START;
           if (stateOverride) {
             break loop;
           }
@@ -344,7 +366,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         }
         break;
 
-      case 'port':
+      case ParserState.PORT:
         if (/[0-9]/.test(c)) {
           buffer += c;
         } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c || stateOverride) {
@@ -358,7 +380,7 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
           if (stateOverride) {
             break loop;
           }
-          state = 'relative path start';
+          state = ParserState.RELATIVE_PATH_START;
           continue;
         } else if ('\t' == c || '\n' == c || '\r' == c) {
           err('Invalid code point in port: ' + c);
@@ -367,16 +389,16 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
         }
         break;
 
-      case 'relative path start':
+      case ParserState.RELATIVE_PATH_START:
         if ('\\' == c)
           err("'\\' not allowed in path.");
-        state = 'relative path';
+        state = ParserState.RELATIVE_PATH;
         if ('/' != c && '\\' != c) {
           continue;
         }
         break;
 
-      case 'relative path':
+      case ParserState.RELATIVE_PATH:
         if (EOF == c || '/' == c || '\\' == c || (!stateOverride && ('?' == c || '#' == c))) {
           if ('\\' == c) {
             err('\\ not allowed in relative path.');
@@ -401,26 +423,26 @@ function parse(this: jURL, input: string, stateOverride: string, base?: jURL) {
           buffer = '';
           if ('?' == c) {
             this._query = '?';
-            state = 'query';
+            state = ParserState.QUERY;
           } else if ('#' == c) {
             this._fragment = '#';
-            state = 'fragment';
+            state = ParserState.FRAGMENT;
           }
         } else if ('\t' != c && '\n' != c && '\r' != c) {
           buffer += percentEscape(c);
         }
         break;
 
-      case 'query':
+      case ParserState.QUERY:
         if (!stateOverride && '#' == c) {
           this._fragment = '#';
-          state = 'fragment';
+          state = ParserState.FRAGMENT;
         } else if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
           this._query += percentEscapeQuery(c);
         }
         break;
 
-      case 'fragment':
+      case ParserState.FRAGMENT:
         if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
           this._fragment += c;
         }
@@ -505,7 +527,7 @@ class jURL {
   set protocol(protocol: string) {
     if (this._isInvalid)
       return;
-    parse.call(this, protocol + ':', 'scheme start');
+    parse.call(this, protocol + ':', ParserState.SCHEME_START);
   }
 
   get host(): string {
@@ -516,7 +538,7 @@ class jURL {
   set host(host: string) {
     if (this._isInvalid || !this._isRelative)
       return;
-    parse.call(this, host, 'host');
+    parse.call(this, host, ParserState.HOST);
   }
 
   get hostname(): string {
@@ -526,7 +548,7 @@ class jURL {
   set hostname(hostname: string) {
     if (this._isInvalid || !this._isRelative)
       return;
-    parse.call(this, hostname, 'hostname');
+    parse.call(this, hostname, ParserState.HOSTNAME);
   }
 
   get port(): string {
@@ -536,7 +558,7 @@ class jURL {
   set port(port: string) {
     if (this._isInvalid || !this._isRelative)
       return;
-    parse.call(this, port, 'port');
+    parse.call(this, port, ParserState.PORT);
   }
 
   get pathname(): string {
@@ -548,7 +570,7 @@ class jURL {
     if (this._isInvalid || !this._isRelative)
       return;
     this._path = [];
-    parse.call(this, pathname, 'relative path start');
+    parse.call(this, pathname, ParserState.RELATIVE_PATH_START);
   }
 
   get search(): string {
@@ -562,7 +584,7 @@ class jURL {
     this._query = '?';
     if ('?' == search[0])
       search = search.slice(1);
-    parse.call(this, search, 'query');
+    parse.call(this, search, ParserState.QUERY);
   }
 
   get hash(): string {
@@ -576,7 +598,7 @@ class jURL {
     this._fragment = '#';
     if ('#' == hash[0])
       hash = hash.slice(1);
-    parse.call(this, hash, 'fragment');
+    parse.call(this, hash, ParserState.FRAGMENT);
   }
 
   get origin(): string {
