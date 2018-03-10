@@ -1,7 +1,7 @@
 const rollupTypescript = require('rollup-plugin-typescript');
 
 module.exports = {
-  input: 'src/url.ts',
+  input: 'src/polyfill.ts',
   output: {
     file: 'dist/url.js',
     format: 'umd',
