@@ -13,7 +13,8 @@ if (!scope.forceJURL) {
     var u = new URL('b', 'http://a');
     u.pathname = 'c%20d';
     hasWorkingUrl = u.href === 'http://a/c%20d';
-  } catch(e) {}
+  } catch (e) {
+  }
 }
 
 if (hasWorkingUrl)
@@ -54,10 +55,10 @@ function IDNAToASCII(h) {
 function percentEscape(c) {
   var unicode = c.charCodeAt(0);
   if (unicode > 0x20 &&
-     unicode < 0x7F &&
-     // " # < > ? `
-     [0x22, 0x23, 0x3C, 0x3E, 0x3F, 0x60].indexOf(unicode) == -1
-    ) {
+      unicode < 0x7F &&
+      // " # < > ? `
+      [0x22, 0x23, 0x3C, 0x3E, 0x3F, 0x60].indexOf(unicode) == -1
+  ) {
     return c;
   }
   return encodeURIComponent(c);
@@ -69,10 +70,10 @@ function percentEscapeQuery(c) {
 
   var unicode = c.charCodeAt(0);
   if (unicode > 0x20 &&
-     unicode < 0x7F &&
-     // " # < > ` (do not escape '?')
-     [0x22, 0x23, 0x3C, 0x3E, 0x60].indexOf(unicode) == -1
-    ) {
+      unicode < 0x7F &&
+      // " # < > ` (do not escape '?')
+      [0x22, 0x23, 0x3C, 0x3E, 0x60].indexOf(unicode) == -1
+  ) {
     return c;
   }
   return encodeURIComponent(c);
@@ -171,7 +172,7 @@ function parse(input, stateOverride, base) {
         break;
 
       case 'relative or authority':
-        if ('/' == c && '/' == input[cursor+1]) {
+        if ('/' == c && '/' == input[cursor + 1]) {
           state = 'authority ignore slashes';
         } else {
           err('Expected /, got: ' + c);
@@ -214,12 +215,12 @@ function parse(input, stateOverride, base) {
           this._password = base._password;
           state = 'fragment';
         } else {
-          var nextC = input[cursor+1]
-          var nextNextC = input[cursor+2]
+          var nextC = input[cursor + 1]
+          var nextNextC = input[cursor + 2]
           if (
-            'file' != this._scheme || !ALPHA.test(c) ||
-            (nextC != ':' && nextC != '|') ||
-            (EOF != nextNextC && '/' != nextNextC && '\\' != nextNextC && '?' != nextNextC && '#' != nextNextC)) {
+              'file' != this._scheme || !ALPHA.test(c) ||
+              (nextC != ':' && nextC != '|') ||
+              (EOF != nextNextC && '/' != nextNextC && '\\' != nextNextC && '?' != nextNextC && '#' != nextNextC)) {
             this._host = base._host;
             this._port = base._port;
             this._username = base._username;
@@ -479,7 +480,7 @@ function jURL(url, base /* , encoding */) {
 }
 
 jURL.prototype = {
-  toString: function() {
+  toString: function () {
     return this.href;
   },
   get href() {
@@ -603,12 +604,12 @@ jURL.prototype = {
 // Copy over the static methods
 var OriginalURL = scope.URL;
 if (OriginalURL) {
-  jURL.createObjectURL = function(blob) {
+  jURL.createObjectURL = function (blob) {
     // IE extension allows a second optional options argument.
     // http://msdn.microsoft.com/en-us/library/ie/hh772302(v=vs.85).aspx
     return OriginalURL.createObjectURL.apply(OriginalURL, arguments);
   };
-  jURL.revokeObjectURL = function(url) {
+  jURL.revokeObjectURL = function (url) {
     OriginalURL.revokeObjectURL(url);
   };
 }
