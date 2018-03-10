@@ -6,5 +6,8 @@
     "type": "git",
     "url": "git+https://github.com/webcomponents/URL.git"
   },
-  "license": "SAX-PD"
+  "license": "SAX-PD",
+  "scripts": {
+    "sync-wpt": "git submodule update --init"
+  },
 }
