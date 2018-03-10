@@ -6,5 +6,13 @@
     "type": "git",
     "url": "git+https://github.com/webcomponents/URL.git"
   },
-  "license": "SAX-PD"
+  "license": "SAX-PD",
+  "scripts": {
+    "test": "node run-web-platform-tests.js",
+    "sync-wpt": "git submodule update --init"
+  },
+  "devDependencies": {
+    "minimatch": "^3.0.4",
+    "wpt-runner": "^2.2.0"
+  }
 }
