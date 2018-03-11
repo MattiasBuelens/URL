@@ -149,6 +149,12 @@ function shortenPath(url: UrlRecord) {
   path.pop();
 }
 
+function cannotHaveUsernamePasswordPort(url: UrlRecord): boolean {
+  return (null === url._host || '' === url._host) ||
+      url._cannotBeABaseURL ||
+      'file' === url._scheme;
+}
+
 const EOF = undefined;
 const ALPHA = /[a-zA-Z]/;
 const DIGIT = /[0-9]/;
@@ -1171,29 +1177,27 @@ class URL {
     let parsedBase: UrlRecord | null = null;
     // 2. If base is given, then:
     if (base !== undefined) {
-      try {
-        // 1. Let parsedBase be the result of running the basic URL parser on base.
-        parsedBase = new URL(String(base));
-      } catch (e) {
-        // 2. If parsedBase is failure, then throw a TypeError exception.
+      // 1. Let parsedBase be the result of running the basic URL parser on base.
+      const parsedBaseResult = parse(String(base), null);
+      // 2. If parsedBase is failure, then throw a TypeError exception.
+      if (parsedBaseResult === false) {
         throw new TypeError('Invalid base URL');
       }
+      parsedBase = parsedBaseResult;
     }
-    url = String(url);
-    this._url = url;
     // 3. Let parsedURL be the result of running the basic URL parser on url with parsedBase.
-    clear(this);
-    const success = parse(url, parsedBase, this, null);
+    const parsedURL = parse(url, parsedBase);
     // 4. If parsedURL is failure, throw a TypeError exception.
-    if (!success) {
+    if (!parsedURL) {
       throw new TypeError('Invalid URL');
     }
     // 5. Let query be parsedURL’s query, if that is non-null, and the empty string otherwise.
-    const query = this._query || '';
+    const query = parsedURL._query || '';
     // 6. Let result be a new URL object.
     // 7. Set result’s url to parsedURL.
+    this._url = parsedURL;
     // 8. Set result’s query object to a new URLSearchParams object using query, and then set that query object’s url object to result.
-    // TODO URLSearchParams
+    // TODO query object
     // 9. Return result.
   }
 
@@ -1210,94 +1214,205 @@ class URL {
   }
 
   set href(href: string) {
-    clear(this);
-    parse(href, null, this);
+    // 1. Let parsedURL be the result of running the basic URL parser on the given value.
+    const parsedURL = parse(String(href), null);
+    // 2. If parsedURL is failure, throw a TypeError exception.
+    if (parsedURL === false) {
+      throw new TypeError('Invalid URL');
+    }
+    // 3. Set context object’s url to parsedURL.
+    this._url = parsedURL;
+    // 4. Empty context object’s query object’s list.
+    // 5. Let query be context object’s url’s query.
+    // 6. If query is non-null, then set context object’s query object’s list to the result of parsing query.
+    // TODO query object
   }
 
   get protocol(): string {
-    return this._scheme + ':';
+    return this._url._scheme + ':';
   }
 
   set protocol(protocol: string) {
-    if (this._isInvalid)
+    parse(protocol + ':', null, this._url, ParserState.SCHEME_START);
+  }
+
+  get username(): string {
+    return this._url._username;
+  }
+
+  set username(username: string) {
+    if (cannotHaveUsernamePasswordPort(this._url)) {
       return;
-    parse(protocol + ':', null, this, ParserState.SCHEME_START);
+    }
+    // TODO Handle percent encoding
+    this._url._username = username;
+  }
+
+  get password(): string {
+    return this._url._password;
+  }
+
+  set password(password: string) {
+    if (cannotHaveUsernamePasswordPort(this._url)) {
+      return;
+    }
+    // TODO Handle percent encoding
+    this._url._password = password;
   }
 
   get host(): string {
-    return this._isInvalid ? '' : this._port ?
-        this._host + ':' + this._port : this._host;
+    // 1. Let url be context object’s url.
+    const url = this._url;
+    // 2. If url’s host is null, return the empty string.
+    if (null === url._host) {
+      return '';
+    }
+    // 3. If url’s port is null, return url’s host, serialized.
+    if (null === url._port) {
+      return serializeHost(url._host);
+    }
+    // 4. Return url’s host, serialized, followed by U+003A (:) and url’s port, serialized.
+    return `${serializeHost(url._host)}:${url._port}`;
   }
 
   set host(host: string) {
-    if (this._isInvalid || !this._isRelative)
+    // 1. If context object’s url’s cannot-be-a-base-URL flag is set, then return.
+    if (this._url._cannotBeABaseURL) {
       return;
-    parse(host, null, this, ParserState.HOST);
+    }
+    // 2. Basic URL parse the given value with context object’s url as url and host state as state override.
+    parse(host, null, this._url, ParserState.HOST);
   }
 
   get hostname(): string {
-    return this._host;
+    // 1. If context object’s url’s host is null, return the empty string.
+    if (null === this._url._host) {
+      return '';
+    }
+    // 2. Return context object’s url’s host, serialized.
+    return serializeHost(this._url._host);
   }
 
   set hostname(hostname: string) {
-    if (this._isInvalid || !this._isRelative)
+    // 1. If context object’s url’s cannot-be-a-base-URL flag is set, then return.
+    if (this._url._cannotBeABaseURL) {
       return;
-    parse(hostname, null, this, ParserState.HOSTNAME);
+    }
+    // 2. Basic URL parse the given value with context object’s url as url and hostname state as state override.
+    parse(hostname, null, this._url, ParserState.HOSTNAME);
   }
 
   get port(): string {
-    return this._port;
+    // 1. If context object’s url’s port is null, return the empty string.
+    if (null === this._url._port) {
+      return '';
+    }
+    // 2. Return context object’s url’s port, serialized.
+    return `${this._url._port}`;
   }
 
   set port(port: string) {
-    if (this._isInvalid || !this._isRelative)
+    // 1. If context object’s url cannot have a username/password/port, then return.
+    if (cannotHaveUsernamePasswordPort(this._url)) {
       return;
-    parse(port, null, this, ParserState.PORT);
+    }
+    // 2. If the given value is the empty string, then set context object’s url’s port to null.
+    if ('' === port) {
+      this._url._port = null;
+    }
+    // 3. Otherwise, basic URL parse the given value with context object’s url as url and port state as state override.
+    else {
+      parse(port, null, this._url, ParserState.PORT);
+    }
   }
 
   get pathname(): string {
-    return this._isInvalid ? '' : this._isRelative ?
-        '/' + this._path.join('/') : this._schemeData;
+    // 1. If context object’s url’s cannot-be-a-base-URL flag is set, then return context object’s url’s path[0].
+    if (this._url._cannotBeABaseURL) {
+      return this._url._path[0];
+    }
+    // 2. If context object’s url’s path is empty, then return the empty string.
+    if (this._url._path.length === 0) {
+      return '';
+    }
+    // 3. Return U+002F (/), followed by the strings in context object’s url’s path (including empty strings), if any,
+    //    separated from each other by U+002F (/).
+    return '/' + this._url._path.join('/');
   }
 
   set pathname(pathname: string) {
-    if (this._isInvalid || !this._isRelative)
+    // 1. If context object’s url’s cannot-be-a-base-URL flag is set, then return.
+    if (this._url._cannotBeABaseURL) {
       return;
-    this._path = [];
-    parse(pathname, null, this, ParserState.PATH_START);
+    }
+    // 2. Empty context object’s url’s path.
+    this._url._path.length = 0;
+    // 3. Basic URL parse the given value with context object’s url as url and path start state as state override.
+    parse(pathname, null, this._url, ParserState.PATH_START);
   }
 
   get search(): string {
-    return this._isInvalid || !this._query || '?' == this._query ?
-        '' : this._query;
+    // 1. If context object’s url’s query is either null or the empty string, return the empty string.
+    if (null === this._url._query || '' === this._url._query) {
+      return '';
+    }
+    // 2. Return U+003F (?), followed by context object’s url’s query.
+    return `?${this._url._query}`;
   }
 
   set search(search: string) {
-    if (this._isInvalid || !this._isRelative)
+    // 1. Let url be context object’s url.
+    const url = this._url;
+    // 2. If the given value is the empty string,
+    //    set url’s query to null,
+    //    empty context object’s query object’s list,
+    //    and then return.
+    if ('' === search) {
+      this._url._query = null;
+      // TODO query object
       return;
-    this._query = '?';
-    if ('?' == search[0])
+    }
+    // 3. Let input be the given value with a single leading U+003F (?) removed, if any.
+    if ('?' === search[0]) {
       search = search.slice(1);
-    parse(search, null, this, ParserState.QUERY);
+    }
+    // 4. Set url’s query to the empty string.
+    this._url._query = '';
+    // 5. Basic URL parse input with url as url and query state as state override.
+    parse(search, null, this._url, ParserState.QUERY);
+    // 6. Set context object’s query object’s list to the result of parsing input.
+    // TODO query object
   }
 
   get hash(): string {
-    return this._isInvalid || !this._fragment || '#' == this._fragment ?
-        '' : this._fragment;
+    // 1. If context object’s url’s fragment is either null or the empty string, return the empty string.
+    if (null === this._url._fragment || '' === this._url._fragment) {
+      return '';
+    }
+    // 2. Return U+0023 (#), followed by context object’s url’s fragment.
+    return `#${this._url._fragment}`;
   }
 
   set hash(hash: string) {
-    if (this._isInvalid)
+    // 1. If the given value is the empty string, then set context object’s url’s fragment to null and return.
+    if ('' === hash) {
+      this._url._fragment = null;
       return;
-    this._fragment = '#';
-    if ('#' == hash[0])
+    }
+    // 2. Let input be the given value with a single leading U+0023 (#) removed, if any.
+    if ('#' === hash[0]) {
       hash = hash.slice(1);
-    parse(hash, null, this, ParserState.FRAGMENT);
+    }
+    // 3. Set context object’s url’s fragment to the empty string.
+    this._url._fragment = '';
+    // 4. Basic URL parse input with context object’s url as url and fragment state as state override.
+    parse(hash, null, this._url, ParserState.FRAGMENT);
   }
 
   get origin(): string {
-    let host;
-    if (this._isInvalid || !this._scheme) {
+    // TODO Make spec-compliant
+    const scheme = this._url._scheme;
+    if (!scheme) {
       return '';
     }
     // javascript: Gecko returns String(""), WebKit/Blink String("null")
@@ -1305,18 +1420,18 @@ class URL {
     // data: Gecko returns "", Blink returns "data://", WebKit returns "null"
     // Gecko returns String("") for file: mailto:
     // WebKit/Blink returns String("SCHEME://") for file: mailto:
-    switch (this._scheme) {
+    switch (scheme) {
       case 'data':
       case 'file':
       case 'javascript':
       case 'mailto':
         return 'null';
     }
-    host = this.host;
+    const host = this.host;
     if (!host) {
       return '';
     }
-    return this._scheme + '://' + host;
+    return `${this._url._scheme}://${host}`;
   }
 }
 
