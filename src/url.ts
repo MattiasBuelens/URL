@@ -1143,18 +1143,6 @@ function serializeHost(host: string): string {
   return host;
 }
 
-function clear(url: UrlRecord) {
-  url._scheme = '';
-  url._username = '';
-  url._password = '';
-  url._host = null;
-  url._port = null;
-  url._path = [];
-  url._query = null;
-  url._fragment = null;
-  url._cannotBeABaseURL = false;
-}
-
 // Does not process domain names or IP addresses.
 // Does not handle encoding for the query parameter.
 class UrlRecord {
