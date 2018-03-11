@@ -20,3 +20,52 @@ export function sequenceToArray<T>(x: Iterable<T>): T[] {
     return Array.from(x);
   }
 }
+
+export function getCodePoints(input: string): number[] {
+  const result: number[] = [];
+  const size = input.length;
+  for (let index = 0; index < size; index++) {
+    // Get the first code unit
+    let first = input.charCodeAt(index);
+    let second: number;
+    // check if it’s the start of a surrogate pair
+    if (
+        first >= 0xD800 && first <= 0xDBFF && // high surrogate
+        size > index + 1 // there is a next code unit
+    ) {
+      second = input.charCodeAt(index + 1);
+      if (second >= 0xDC00 && second <= 0xDFFF) { // low surrogate
+        // https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+        result.push((first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000);
+        index += 1;
+      }
+    }
+    result.push(first);
+  }
+  return result;
+}
+
+export function compareArrays(arr1: number[], arr2: number[]): number {
+  const length1 = arr1.length;
+  const length2 = arr1.length;
+  const lengthMin = Math.min(length1, length2);
+
+  let pos = 0;
+  while (pos < lengthMin && arr1[pos] === arr2[pos]) {
+    ++pos;
+  }
+
+  if (pos < lengthMin) {
+    return (arr1[pos] > arr2[pos]) ? 1 : -1;
+  }
+
+  if (length1 === length2) {
+    return 0;
+  }
+
+  return (length1 > length2) ? 1 : -1;
+}
+
+export function compareByCodePoints(left: string, right: string): number {
+  return compareArrays(getCodePoints(left), getCodePoints(right));
+}

@@ -1080,7 +1080,7 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
 
 // Does not process domain names or IP addresses.
 // Does not handle encoding for the query parameter.
-class UrlRecord {
+export class UrlRecord {
   _scheme: string = '';
   _username: string = '';
   _password: string = '';
