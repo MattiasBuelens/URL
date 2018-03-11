@@ -1228,6 +1228,31 @@ class URL {
     // TODO query object
   }
 
+  get origin(): string {
+    // TODO Make spec-compliant
+    const scheme = this._url._scheme;
+    if (!scheme) {
+      return '';
+    }
+    // javascript: Gecko returns String(""), WebKit/Blink String("null")
+    // Gecko throws error for "data://"
+    // data: Gecko returns "", Blink returns "data://", WebKit returns "null"
+    // Gecko returns String("") for file: mailto:
+    // WebKit/Blink returns String("SCHEME://") for file: mailto:
+    switch (scheme) {
+      case 'data':
+      case 'file':
+      case 'javascript':
+      case 'mailto':
+        return 'null';
+    }
+    const host = this.host;
+    if (!host) {
+      return '';
+    }
+    return `${this._url._scheme}://${host}`;
+  }
+
   get protocol(): string {
     return this._url._scheme + ':';
   }
@@ -1407,31 +1432,6 @@ class URL {
     this._url._fragment = '';
     // 4. Basic URL parse input with context object’s url as url and fragment state as state override.
     parse(hash, null, this._url, ParserState.FRAGMENT);
-  }
-
-  get origin(): string {
-    // TODO Make spec-compliant
-    const scheme = this._url._scheme;
-    if (!scheme) {
-      return '';
-    }
-    // javascript: Gecko returns String(""), WebKit/Blink String("null")
-    // Gecko throws error for "data://"
-    // data: Gecko returns "", Blink returns "data://", WebKit returns "null"
-    // Gecko returns String("") for file: mailto:
-    // WebKit/Blink returns String("SCHEME://") for file: mailto:
-    switch (scheme) {
-      case 'data':
-      case 'file':
-      case 'javascript':
-      case 'mailto':
-        return 'null';
-    }
-    const host = this.host;
-    if (!host) {
-      return '';
-    }
-    return `${this._url._scheme}://${host}`;
   }
 }
 
