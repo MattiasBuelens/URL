@@ -1,6 +1,9 @@
 /* Any copyright is dedicated to the Public Domain.
 * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+import { percentEscape, percentEscapeQuery } from "./encode";
+import { parseHost, serializeHost } from "./host";
+
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
 defaultPorts['file'] = 0;
@@ -38,69 +41,6 @@ function isSpecial(url: UrlRecord): boolean {
 
 function includesCredentials(url: UrlRecord): boolean {
   return url._username !== '' || url._password !== '';
-}
-
-function parseHost(input: string, isSpecial: boolean): string | undefined {
-  // 1. If input starts with U+005B ([), then:
-  if ('[' === input[0]) {
-    // 1. If input does not end with U+005D (]), validation error, return failure.
-    if (']' !== input[input.length - 1]) {
-      return undefined;
-    }
-    // 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
-    return parseIPv6(input.slice(1, -1));
-  }
-  // 2. If isSpecial is false, then return the result of opaque-host parsing input.
-  if (!isSpecial) {
-    return parseOpaqueHost(input);
-  }
-  // TODO steps 3 to 9
-  return input;
-}
-
-function parseOpaqueHost(input: string): string | undefined {
-  // TODO 1. If input contains a forbidden host code point excluding U+0025 (%), validation error, return failure.
-  // 2. Let output be the empty string.
-  let output = '';
-  // 3. For each code point in input, UTF-8 percent encode it using the C0 control percent-encode set,
-  // and append the result to output.
-  for (let i = 0; i < input.length; i++) {
-    output += percentEscape(input[i]);
-  }
-  // 4. Return output.
-  return output;
-}
-
-function parseIPv6(input: string): string {
-  // TODO
-  return input;
-}
-
-function percentEscape(c: string): string {
-  const unicode = c.charCodeAt(0);
-  if (unicode > 0x20 &&
-      unicode < 0x7F &&
-      // " # < > ? `
-      [0x22, 0x23, 0x3C, 0x3E, 0x3F, 0x60].indexOf(unicode) == -1
-  ) {
-    return c;
-  }
-  return encodeURIComponent(c);
-}
-
-function percentEscapeQuery(c: string) {
-  // XXX This actually needs to encode c using encoding and then
-  // convert the bytes one-by-one.
-
-  const unicode = c.charCodeAt(0);
-  if (unicode > 0x20 &&
-      unicode < 0x7F &&
-      // " # < > ` (do not escape '?')
-      [0x22, 0x23, 0x3C, 0x3E, 0x60].indexOf(unicode) == -1
-  ) {
-    return c;
-  }
-  return encodeURIComponent(c);
 }
 
 function startsWithWindowsDriveLetter(input: string, cursor: number): boolean {
@@ -1136,11 +1076,6 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
   }
   // 8. Return output.
   return output;
-}
-
-function serializeHost(host: string): string {
-  // TODO
-  return host;
 }
 
 // Does not process domain names or IP addresses.
