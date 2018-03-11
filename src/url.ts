@@ -2,7 +2,7 @@
 * http://creativecommons.org/publicdomain/zero/1.0/ */
 
 import { percentEscape, percentEscapeQuery } from "./encode";
-import { parseHost, serializeHost } from "./host";
+import { Host, parseHost, serializeHost } from "./host";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -1084,7 +1084,7 @@ class UrlRecord {
   _scheme: string = '';
   _username: string = '';
   _password: string = '';
-  _host: string | null = null;
+  _host: Host | null = null;
   _port: number | null = null;
   _path: string[] = [];
   _query: string | null = null;
