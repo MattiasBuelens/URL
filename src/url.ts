@@ -207,7 +207,6 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
     // 3. Remove all ASCII tab or newline from input.
     input = input.replace(TAB_OR_NEWLINE, '');
   }
-
   // 4. Let state be state override if given, or scheme start state otherwise.
   let state: ParserState = stateOverride || ParserState.SCHEME_START;
   // 5. If base is not given, set it to null.
@@ -335,21 +334,6 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           return false;
         }
         break;
-
-        // case ParserState.SCHEME_DATA:
-        //   if ('?' == c) {
-        //     url._query = '?';
-        //     state = ParserState.QUERY;
-        //   } else if ('#' == c) {
-        //     url._fragment = '#';
-        //     state = ParserState.FRAGMENT;
-        //   } else {
-        //     // XXX error handling
-        //     if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
-        //       url._schemeData += percentEscape(c);
-        //     }
-        //   }
-        //   break;
 
       case ParserState.NO_SCHEME:
         // 1. If base is null, or base’s cannot-be-a-base-URL flag is set
@@ -608,25 +592,6 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         }
         break;
 
-        // case ParserState.FILE_HOST:
-        //   if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
-        //     if (buffer.length == 2 && ALPHA.test(buffer[0]) && (buffer[1] == ':' || buffer[1] == '|')) {
-        //       state = ParserState.RELATIVE_PATH;
-        //     } else if (buffer.length == 0) {
-        //       state = ParserState.RELATIVE_PATH_START;
-        //     } else {
-        //       url._host = IDNAToASCII(url, buffer);
-        //       buffer = '';
-        //       state = ParserState.RELATIVE_PATH_START;
-        //     }
-        //     continue;
-        //   } else if ('\t' == c || '\n' == c || '\r' == c) {
-        //     err('Invalid whitespace in file host.');
-        //   } else {
-        //     buffer += c;
-        //   }
-        //   break;
-
       case ParserState.HOST:
       case ParserState.HOSTNAME:
         // 1. If state override is given and url’s scheme is "file",
@@ -656,7 +621,6 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           if (stateOverride === ParserState.HOSTNAME) {
             return true;
           }
-
         }
         // 3. Otherwise, if one of the following is true:
         //    - c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
