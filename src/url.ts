@@ -223,9 +223,9 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
   // 10. Let pointer be a pointer to first code point in input.
   let cursor = 0;
 
-  // Keep running the following state machine by switching on state.
-  // If after a run pointer points to the EOF code point, go to the next step.
-  // Otherwise, increase pointer by one and continue with the state machine.
+  // 11. Keep running the following state machine by switching on state.
+  //     If after a run pointer points to the EOF code point, go to the next step.
+  //     Otherwise, increase pointer by one and continue with the state machine.
   while (input[cursor - 1] !== EOF || cursor === 0) {
     const c = input[cursor];
     switch (state) {
