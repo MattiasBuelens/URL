@@ -155,6 +155,7 @@ const DIGIT = /[0-9]/;
 const HEX_DIGIT = /[0-9a-fA-F]/;
 const ALPHANUMERIC = /[a-zA-Z0-9+\-.]/;
 const TAB_OR_NEWLINE = /\t|\n|\r/g;
+const LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE = /^[\x00-\x1f ]+|[\x00-\x1f ]+$/g;
 
 const enum ParserState {
   SCHEME_START,
@@ -180,13 +181,26 @@ const enum ParserState {
   FRAGMENT
 }
 
-function parse(url: UrlRecord, input: string, stateOverride?: ParserState | null, base?: UrlRecord | null): boolean {
+function parse(input: string, base: UrlRecord | null): UrlRecord | false;
+function parse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): boolean;
+function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, stateOverride?: ParserState | null): UrlRecord | boolean {
   let errors: string[] = [];
 
   function err(message: string) {
     errors.push(message);
   }
 
+  // 1. If url is not given:
+  if (!url) {
+    // 1. Set url to a new URL.
+    url = new UrlRecord();
+    // 2. If input contains any leading or trailing C0 control or space, validation error.
+    if (LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE.test(input)) {
+      err('Invalid leading or trailing control or space');
+      // 3. Remove any leading and trailing C0 control or space from input.
+      input = input.replace(LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE, '');
+    }
+  }
   // 2. If input contains any ASCII tab or newline, validation error.
   if (TAB_OR_NEWLINE.test(input)) {
     err('Invalid tab or newline');
@@ -1101,7 +1115,8 @@ function parse(url: UrlRecord, input: string, stateOverride?: ParserState | null
     cursor++;
   }
 
-  return true;
+  // 12. Return url.
+  return url;
 }
 
 function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string {
@@ -1160,7 +1175,6 @@ function serializeHost(host: string): string {
 
 function clear(url: UrlRecord) {
   url._scheme = '';
-  url._schemeData = '';
   url._username = '';
   url._password = '';
   url._host = null;
@@ -1173,18 +1187,16 @@ function clear(url: UrlRecord) {
 
 // Does not process domain names or IP addresses.
 // Does not handle encoding for the query parameter.
-interface UrlRecord {
-  _url: string;
-  _scheme: string;
-  _schemeData: string;
-  _username: string;
-  _password: string;
-  _host: string | null;
-  _port: number | null;
-  _path: string[];
-  _query: string | null;
-  _fragment: string | null;
-  _cannotBeABaseURL: boolean;
+class UrlRecord {
+  _scheme: string = '';
+  _username: string = '';
+  _password: string = '';
+  _host: string | null = null;
+  _port: number | null = null;
+  _path: string[] = [];
+  _query: string | null = null;
+  _fragment: string | null = null;
+  _cannotBeABaseURL: boolean = false;
 }
 
 class URL {
@@ -1207,7 +1219,7 @@ class URL {
     this._url = url;
     // 3. Let parsedURL be the result of running the basic URL parser on url with parsedBase.
     clear(this);
-    const success = parse(this, url, null, parsedBase);
+    const success = parse(url, parsedBase, this, null);
     // 4. If parsedURL is failure, throw a TypeError exception.
     if (!success) {
       throw new TypeError('Invalid URL');
@@ -1235,7 +1247,7 @@ class URL {
 
   set href(href: string) {
     clear(this);
-    parse(this, href);
+    parse(href, null, this);
   }
 
   get protocol(): string {
@@ -1245,7 +1257,7 @@ class URL {
   set protocol(protocol: string) {
     if (this._isInvalid)
       return;
-    parse(this, protocol + ':', ParserState.SCHEME_START);
+    parse(protocol + ':', null, this, ParserState.SCHEME_START);
   }
 
   get host(): string {
@@ -1256,7 +1268,7 @@ class URL {
   set host(host: string) {
     if (this._isInvalid || !this._isRelative)
       return;
-    parse(this, host, ParserState.HOST);
+    parse(host, null, this, ParserState.HOST);
   }
 
   get hostname(): string {
@@ -1266,7 +1278,7 @@ class URL {
   set hostname(hostname: string) {
     if (this._isInvalid || !this._isRelative)
       return;
-    parse(this, hostname, ParserState.HOSTNAME);
+    parse(hostname, null, this, ParserState.HOSTNAME);
   }
 
   get port(): string {
@@ -1276,7 +1288,7 @@ class URL {
   set port(port: string) {
     if (this._isInvalid || !this._isRelative)
       return;
-    parse(this, port, ParserState.PORT);
+    parse(port, null, this, ParserState.PORT);
   }
 
   get pathname(): string {
@@ -1288,7 +1300,7 @@ class URL {
     if (this._isInvalid || !this._isRelative)
       return;
     this._path = [];
-    parse(this, pathname, ParserState.PATH_START);
+    parse(pathname, null, this, ParserState.PATH_START);
   }
 
   get search(): string {
@@ -1302,7 +1314,7 @@ class URL {
     this._query = '?';
     if ('?' == search[0])
       search = search.slice(1);
-    parse(this, search, ParserState.QUERY);
+    parse(search, null, this, ParserState.QUERY);
   }
 
   get hash(): string {
@@ -1316,7 +1328,7 @@ class URL {
     this._fragment = '#';
     if ('#' == hash[0])
       hash = hash.slice(1);
-    parse(this, hash, ParserState.FRAGMENT);
+    parse(hash, null, this, ParserState.FRAGMENT);
   }
 
   get origin(): string {
