@@ -69,6 +69,16 @@ function parseIPv6(input: string): IPv6Host | undefined {
 }
 
 export function serializeHost(host: Host): string {
-  // TODO
-  return host;
+  if ('' === host) {
+    return host;
+  }
+  switch (host._type) {
+    case HostType.DOMAIN_OR_IPV4:
+      return host._domain;
+    case HostType.IPV6:
+      // TODO Compress IPv6
+      return `[${host._address}]`;
+    case HostType.OPAQUE:
+      return host._data;
+  }
 }
