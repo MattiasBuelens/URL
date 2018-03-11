@@ -2,7 +2,7 @@
 * http://creativecommons.org/publicdomain/zero/1.0/ */
 
 import { percentEscape, percentEscapeQuery } from "./encode";
-import { Host, parseHost, serializeHost } from "./host";
+import { Host, HostType, parseHost, serializeHost } from "./host";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -793,7 +793,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
               return false;
             }
             // 3. If host is "localhost", then set host to the empty string.
-            if ('localhost' === host) {
+            if ('' !== host && host._type === HostType.DOMAIN_OR_IPV4 && 'localhost' === host._domain) {
               host = '';
             }
             // 4. Set url’s host to host.
