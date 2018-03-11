@@ -1104,6 +1104,60 @@ function parse(url: jURL, input: string, stateOverride?: ParserState | null, bas
   return true;
 }
 
+function serializeUrl(url: jURL, excludeFragment: boolean = false): string {
+  // 1. Let output be url’s scheme and U+003A (:) concatenated.
+  let output = url._scheme + ':';
+  // 2. If url’s host is non-null:
+  if (null !== url._host) {
+    // 1. Append "//" to output.
+    output += '//';
+    // 2. If url includes credentials, then:
+    if (includesCredentials(url)) {
+      // 1. Append url’s username to output.
+      output += url._username;
+      // 2. If url’s password is not the empty string, then append U+003A (:), followed by url’s password, to output.
+      if ('' !== url._password) {
+        output += ':' + url._password;
+      }
+      // 3. Append U+0040 (@) to output.
+      output += '@';
+    }
+    // 3. Append url’s host, serialized, to output.
+    output += serializeHost(url._host);
+    // 4. If url’s port is non-null, append U+003A (:) followed by url’s port, serialized, to output.
+    if (null !== url._port) {
+      output += ':' + url._port;
+    }
+  }
+  // 3. Otherwise, if url’s host is null and url’s scheme is "file", append "//" to output.
+  else if (null === url._host && 'file' === url._scheme) {
+    output += '//';
+  }
+  // 4. If url’s cannot-be-a-base-URL flag is set, append url’s path[0] to output.
+  if (url._cannotBeABaseURL) {
+    output += url._path[0];
+  }
+  // 5. Otherwise, then for each string in url’s path, append U+002F (/) followed by the string to output.
+  else {
+    output += '/' + url._path.join('/');
+  }
+  // 6. If url’s query is non-null, append U+003F (?), followed by url’s query, to output.
+  if (null !== url._query) {
+    output += '?' + url._query;
+  }
+  // 7. If the exclude fragment flag is unset and url’s fragment is non-null, append U+0023 (#), followed by url’s fragment, to output.
+  if (!excludeFragment && null !== url._fragment) {
+    output += '#' + url._fragment;
+  }
+  // 8. Return output.
+  return output;
+}
+
+function serializeHost(host: string): string {
+  // TODO
+  return host;
+}
+
 function clear(url: jURL) {
   url._scheme = '';
   url._schemeData = '';
@@ -1133,35 +1187,46 @@ class jURL {
   _cannotBeABaseURL: boolean;
 
   constructor(url: string, base?: string | jURL /* , encoding */) {
-    if (base !== undefined && !(base instanceof jURL))
-      base = new jURL(String(base));
-
+    // 1. Let parsedBase be null.
+    let parsedBase: jURL | null = null;
+    // 2. If base is given, then:
+    if (base !== undefined) {
+      try {
+        // 1. Let parsedBase be the result of running the basic URL parser on base.
+        parsedBase = new jURL(String(base));
+      } catch (e) {
+        // 2. If parsedBase is failure, then throw a TypeError exception.
+        throw new TypeError('Invalid base URL');
+      }
+    }
+    url = String(url);
     this._url = url;
+    // 3. Let parsedURL be the result of running the basic URL parser on url with parsedBase.
     clear(this);
-
-    const input = url.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '');
-    // encoding = encoding || 'utf-8'
-
-    parse(this, input, null, base);
+    const success = parse(this, url, null, parsedBase);
+    // 4. If parsedURL is failure, throw a TypeError exception.
+    if (!success) {
+      throw new TypeError('Invalid URL');
+    }
+    // 5. Let query be parsedURL’s query, if that is non-null, and the empty string otherwise.
+    const query = this._query || '';
+    // 6. Let result be a new URL object.
+    // 7. Set result’s url to parsedURL.
+    // 8. Set result’s query object to a new URLSearchParams object using query, and then set that query object’s url object to result.
+    // TODO URLSearchParams
+    // 9. Return result.
   }
 
   toString(): string {
     return this.href;
   }
 
+  toJSON(): string {
+    return this.href;
+  }
+
   get href(): string {
-    if (this._isInvalid)
-      return this._url;
-
-    let authority = '';
-    if ('' != this._username || null != this._password) {
-      authority = this._username +
-          (null != this._password ? ':' + this._password : '') + '@';
-    }
-
-    return this.protocol +
-        (this._isRelative ? '//' + authority + this.host : '') +
-        this.pathname + this._query + this._fragment;
+    return serializeUrl(this);
   }
 
   set href(href: string) {
