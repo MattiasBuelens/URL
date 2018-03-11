@@ -8,7 +8,7 @@ export const enum HostType {
 
 export interface DomainOrIPV4Host {
   _type: HostType.DOMAIN_OR_IPV4;
-  _domain: string;
+  _domainOrAddress: string;
 }
 
 export interface IPv6Host {
@@ -40,7 +40,7 @@ export function parseHost(input: string, isSpecial: boolean): Host | undefined {
   // TODO steps 3 to 9
   return {
     _type: HostType.DOMAIN_OR_IPV4,
-    _domain: input
+    _domainOrAddress: input
   };
 }
 
@@ -74,7 +74,7 @@ export function serializeHost(host: Host): string {
   }
   switch (host._type) {
     case HostType.DOMAIN_OR_IPV4:
-      return host._domain;
+      return host._domainOrAddress;
     case HostType.IPV6:
       // TODO Compress IPv6
       return `[${host._address}]`;

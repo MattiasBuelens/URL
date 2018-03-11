@@ -793,7 +793,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
               return false;
             }
             // 3. If host is "localhost", then set host to the empty string.
-            if ('' !== host && host._type === HostType.DOMAIN_OR_IPV4 && 'localhost' === host._domain) {
+            if ('' !== host && host._type === HostType.DOMAIN_OR_IPV4 && 'localhost' === host._domainOrAddress) {
               host = '';
             }
             // 4. Set url’s host to host.
