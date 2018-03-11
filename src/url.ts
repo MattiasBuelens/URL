@@ -32,11 +32,11 @@ function isSpecialScheme(scheme: string): boolean {
   return defaultPorts[scheme] !== undefined;
 }
 
-function isSpecial(url: jURL): boolean {
+function isSpecial(url: UrlRecord): boolean {
   return isSpecialScheme(url._scheme);
 }
 
-function includesCredentials(url: jURL): boolean {
+function includesCredentials(url: UrlRecord): boolean {
   return url._username !== '' || url._password !== '';
 }
 
@@ -134,7 +134,7 @@ function isNormalizedWindowsDriveLetter(input: string): boolean {
       && (':' === input[1]);
 }
 
-function shortenPath(url: jURL) {
+function shortenPath(url: UrlRecord) {
   // 1. Let path be url’s path.
   const path = url._path;
   // 2. If path is empty, then return.
@@ -180,7 +180,7 @@ const enum ParserState {
   FRAGMENT
 }
 
-function parse(url: jURL, input: string, stateOverride?: ParserState | null, base?: jURL | null): boolean {
+function parse(url: UrlRecord, input: string, stateOverride?: ParserState | null, base?: UrlRecord | null): boolean {
   let errors: string[] = [];
 
   function err(message: string) {
@@ -1104,7 +1104,7 @@ function parse(url: jURL, input: string, stateOverride?: ParserState | null, bas
   return true;
 }
 
-function serializeUrl(url: jURL, excludeFragment: boolean = false): string {
+function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string {
   // 1. Let output be url’s scheme and U+003A (:) concatenated.
   let output = url._scheme + ':';
   // 2. If url’s host is non-null:
@@ -1158,7 +1158,7 @@ function serializeHost(host: string): string {
   return host;
 }
 
-function clear(url: jURL) {
+function clear(url: UrlRecord) {
   url._scheme = '';
   url._schemeData = '';
   url._username = '';
@@ -1173,7 +1173,7 @@ function clear(url: jURL) {
 
 // Does not process domain names or IP addresses.
 // Does not handle encoding for the query parameter.
-class jURL {
+interface UrlRecord {
   _url: string;
   _scheme: string;
   _schemeData: string;
@@ -1185,15 +1185,19 @@ class jURL {
   _query: string | null;
   _fragment: string | null;
   _cannotBeABaseURL: boolean;
+}
 
-  constructor(url: string, base?: string | jURL /* , encoding */) {
+class URL {
+  private _url: UrlRecord;
+
+  constructor(url: string, base?: string | UrlRecord /* , encoding */) {
     // 1. Let parsedBase be null.
-    let parsedBase: jURL | null = null;
+    let parsedBase: UrlRecord | null = null;
     // 2. If base is given, then:
     if (base !== undefined) {
       try {
         // 1. Let parsedBase be the result of running the basic URL parser on base.
-        parsedBase = new jURL(String(base));
+        parsedBase = new URL(String(base));
       } catch (e) {
         // 2. If parsedBase is failure, then throw a TypeError exception.
         throw new TypeError('Invalid base URL');
@@ -1226,7 +1230,7 @@ class jURL {
   }
 
   get href(): string {
-    return serializeUrl(this);
+    return serializeUrl(this._url);
   }
 
   set href(href: string) {
@@ -1340,4 +1344,4 @@ class jURL {
   }
 }
 
-export { jURL };
+export { URL as jURL };
