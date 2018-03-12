@@ -3,6 +3,7 @@
 
 import { percentEscape, percentEscapeQuery } from "./encode";
 import { Host, HostType, parseHost, serializeHost } from "./host";
+import { emptyParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -1092,8 +1093,21 @@ export class UrlRecord {
   _cannotBeABaseURL: boolean = false;
 }
 
+// region URLSearchParams internals
+
+export interface URLInternals {
+  _url: UrlRecord;
+}
+
+export function setUrlQuery(url: URL, query: string | null) {
+  (url as any as URLInternals)._url._query = query;
+}
+
+// endregion
+
 class URL {
   private _url: UrlRecord;
+  private readonly _query: URLSearchParams;
 
   constructor(url: string, base?: string | UrlRecord /* , encoding */) {
     // 1. Let parsedBase be null.
@@ -1119,8 +1133,10 @@ class URL {
     // 6. Let result be a new URL object.
     // 7. Set result’s url to parsedURL.
     this._url = parsedURL;
-    // 8. Set result’s query object to a new URLSearchParams object using query, and then set that query object’s url object to result.
-    // TODO query object
+    // 8. Set result’s query object to a new URLSearchParams object using query,
+    // and then set that query object’s url object to result.
+    this._query = new URLSearchParams(query);
+    setParamsUrl(this._query, this);
     // 9. Return result.
   }
 
@@ -1146,9 +1162,13 @@ class URL {
     // 3. Set context object’s url to parsedURL.
     this._url = parsedURL;
     // 4. Empty context object’s query object’s list.
+    emptyParams(this._query);
     // 5. Let query be context object’s url’s query.
+    const query = this._url._query;
     // 6. If query is non-null, then set context object’s query object’s list to the result of parsing query.
-    // TODO query object
+    if (null !== query) {
+      setParamsQuery(this._query, query);
+    }
   }
 
   get origin(): string {
@@ -1308,6 +1328,11 @@ class URL {
     return `?${this._url._query}`;
   }
 
+  get searchParams(): URLSearchParams {
+    // Return context object’s query object.
+    return this._query;
+  }
+
   set search(search: string) {
     // 1. Let url be context object’s url.
     const url = this._url;
@@ -1317,7 +1342,7 @@ class URL {
     //    and then return.
     if ('' === search) {
       this._url._query = null;
-      // TODO query object
+      emptyParams(this._query);
       return;
     }
     // 3. Let input be the given value with a single leading U+003F (?) removed, if any.
@@ -1329,7 +1354,7 @@ class URL {
     // 5. Basic URL parse input with url as url and query state as state override.
     parse(search, null, this._url, ParserState.QUERY);
     // 6. Set context object’s query object’s list to the result of parsing input.
-    // TODO query object
+    setParamsQuery(this._query, search);
   }
 
   get hash(): string {

@@ -1,4 +1,4 @@
-import { UrlRecord } from "./url";
+import { jURL, setUrlQuery } from "./url";
 import { compareByCodePoints, isSequence, sequenceToArray } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./encode";
 
@@ -6,9 +6,30 @@ function compareParams(a: [string, string], b: [string, string]): number {
   return compareByCodePoints(a[0], b[0]);
 }
 
+// region URL internals
+
+interface URLSearchParamsInternals {
+  _list: Array<[string, string]>;
+  _url: jURL | null;
+}
+
+export function setParamsUrl(params: URLSearchParams, url: jURL) {
+  (params as any as URLSearchParamsInternals)._url = url;
+}
+
+export function emptyParams(params: URLSearchParams) {
+  (params as any as URLSearchParamsInternals)._list.length = 0;
+}
+
+export function setParamsQuery(params: URLSearchParams, query: string) {
+  (params as any as URLSearchParamsInternals)._list = parseUrlEncoded(query);
+}
+
+// endregion
+
 export class URLSearchParams implements Iterable<[string, string]> {
   private _list: Array<[string, string]> = [];
-  private _url: UrlRecord | null = null;
+  private _url: jURL | null = null;
 
   constructor(init: Array<[string, string]> | { [name: string]: string } | string = '') {
     // https://url.spec.whatwg.org/#concept-urlsearchparams-new
@@ -59,7 +80,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       query = null;
     }
     // 3. Set url object’s url’s query to query.
-    this._url._query = query;
+    setUrlQuery(this._url, query);
   }
 
   append(name: string, value: string): void {
