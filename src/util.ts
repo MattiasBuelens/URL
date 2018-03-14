@@ -62,7 +62,7 @@ const MAX_SIZE = 0x4000;
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint#Polyfill
 export const fromCodePoints: (codePoints: number[]) => string
     = (typeof String.fromCodePoint === 'function')
-    ? codePoints => String.fromCodePoint(...codePoints)
+    ? (codePoints) => String.fromCodePoint(...codePoints)
     : (codePoints) => {
       const codeUnits: number[] = [];
       const length = codePoints.length;
