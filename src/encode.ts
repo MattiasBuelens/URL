@@ -5,6 +5,10 @@ export function percentEncode(c: string): string {
   return encodeURIComponent(c);
 }
 
+export function percentDecode(c: string): string {
+  return decodeURIComponent(c);
+}
+
 // https://infra.spec.whatwg.org/#c0-control
 export function isC0Control(code: number): boolean {
   return code >= 0x00 // U+0000 NULL
@@ -96,9 +100,8 @@ export function parseUrlEncoded(input: string): Array<[string, string]> {
     value = value.replace(PLUS, ' ');
     // 5. Let nameString and valueString be the result of running UTF-8 decode without BOM
     //    on the percent decoding of name and value, respectively.
-    // TODO percent decode
-    const nameString = name;
-    const valueString = value;
+    const nameString = percentDecode(name);
+    const valueString = percentDecode(value);
     // 6. Append (nameString, valueString) to output.
     output.push([nameString, valueString]);
   }
