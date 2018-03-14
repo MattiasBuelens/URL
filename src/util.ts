@@ -21,7 +21,10 @@ export function sequenceToArray<T>(x: Iterable<T>): T[] {
   }
 }
 
-export function getCodePointAt(input: string, index: number): number | undefined {
+export const getCodePointAt: (input: string, index: number) => number | undefined
+= (typeof String.prototype.codePointAt === 'function')
+? (input, index) => input.codePointAt(index)
+: (input, index) => {
   const size = input.length;
   // Get the first code unit
   let first = input.charCodeAt(index);
@@ -38,7 +41,7 @@ export function getCodePointAt(input: string, index: number): number | undefined
     }
   }
   return first;
-}
+};
 
 export function getCodePoints(input: string): number[] {
   const result: number[] = [];
@@ -57,7 +60,10 @@ export function getCodePoints(input: string): number[] {
 const MAX_SIZE = 0x4000;
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint#Polyfill
-export function fromCodePoints(codePoints: number[]): string {
+export const fromCodePoints: (codePoints: number[]) => string
+= (typeof String.fromCodePoint === 'function')
+? codePoints => String.fromCodePoint(...codePoints)
+: (codePoints) => {
   const codeUnits: number[] = [];
   const length = codePoints.length;
   let result = '';
@@ -86,7 +92,7 @@ export function fromCodePoints(codePoints: number[]): string {
     }
   }
   return result;
-}
+};
 
 export function compareArrays(arr1: number[], arr2: number[]): number {
   const length1 = arr1.length;
