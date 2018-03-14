@@ -38,33 +38,33 @@ export function newURLSearchParams(init: URLSearchParamsInit = ''): URLSearchPar
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
 function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit = '') {
-    // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
-    if (typeof init === 'string') {
-      query._list = parseUrlEncoded(init);
+  // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
+  if (typeof init === 'string') {
+    query._list = parseUrlEncoded(init);
+  }
+  // 2. If init is a sequence, then for each pair in init:
+  else if (isSequence(init)) {
+    const initArray = sequenceToArray(init);
+    for (const pair of initArray) {
+      const pairArray = sequenceToArray(init);
+      // 1. If pair does not contain exactly two items, then throw a TypeError.
+      if (pairArray.length !== 2) {
+        throw new TypeError('Invalid name-value pair');
+      }
+      // 2. Append a new name-value pair whose name is pair’s first item,
+      //    and value is pair’s second item, to query’s list.
+      query._list.push([String(pairArray[0]), String(pairArray[1])]);
     }
-    // 2. If init is a sequence, then for each pair in init:
-    else if (isSequence(init)) {
-      const initArray = sequenceToArray(init);
-      for (const pair of initArray) {
-        const pairArray = sequenceToArray(init);
-        // 1. If pair does not contain exactly two items, then throw a TypeError.
-        if (pairArray.length !== 2) {
-          throw new TypeError('Invalid name-value pair');
-        }
-        // 2. Append a new name-value pair whose name is pair’s first item,
-        //    and value is pair’s second item, to query’s list.
-        query._list.push([String(pairArray[0]), String(pairArray[1])]);
+  }
+  // 3. Otherwise, if init is a record, then for each name → value in init,
+  //    append a new name-value pair whose name is name and value is value, to query’s list.
+  else {
+    for (let name in init) {
+      if (Object.prototype.hasOwnProperty.call(init, name)) {
+        query._list.push([name, String(init[name])]);
       }
     }
-    // 3. Otherwise, if init is a record, then for each name → value in init,
-    //    append a new name-value pair whose name is name and value is value, to query’s list.
-    else {
-      for (let name in init) {
-        if (Object.prototype.hasOwnProperty.call(init, name)) {
-          query._list.push([name, String(init[name])]);
-        }
-      }
-    }
+  }
 }
 
 // endregion
