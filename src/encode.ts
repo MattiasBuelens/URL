@@ -1,31 +1,67 @@
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
 
-export function percentEscape(c: string): string {
-  const unicode = c.charCodeAt(0);
-  if (unicode > 0x20 &&
-      unicode < 0x7F &&
-      // " # < > ? `
-      [0x22, 0x23, 0x3C, 0x3E, 0x3F, 0x60].indexOf(unicode) == -1
-  ) {
-    return c;
-  }
+export function percentEncode(c: string): string {
   return encodeURIComponent(c);
 }
 
-export function percentEscapeQuery(c: string) {
-  // XXX This actually needs to encode c using encoding and then
-  // convert the bytes one-by-one.
+// https://infra.spec.whatwg.org/#c0-control
+export function isC0Control(code: number): boolean {
+  return code >= 0x00 // U+0000 NULL
+      && code <= 0x1F; // U+001F INFORMATION SEPARATOR ONE
+}
 
-  const unicode = c.charCodeAt(0);
-  if (unicode > 0x20 &&
-      unicode < 0x7F &&
-      // " # < > ` (do not escape '?')
-      [0x22, 0x23, 0x3C, 0x3E, 0x60].indexOf(unicode) == -1
-  ) {
-    return c;
-  }
-  return encodeURIComponent(c);
+// https://url.spec.whatwg.org/#c0-control-percent-encode-set
+export function isC0ControlPercentEncode(code: number): boolean {
+  return isC0Control(code)
+      || code > 0x7E; // U+007E (~)
+}
+
+// https://url.spec.whatwg.org/#fragment-percent-encode-set
+export function isFragmentPercentEncode(code: number): boolean {
+  return isC0ControlPercentEncode(code)
+      || code === 0x20 // U+0020 SPACE
+      || code === 0x22 // U+0022 (")
+      || code === 0x3C // U+003C (<)
+      || code === 0x3E // U+003E (>)
+      || code === 0x60; // U+0060 (`)
+}
+
+// https://url.spec.whatwg.org/#path-percent-encode-set
+export function isPathPercentEncode(code: number): boolean {
+  return isFragmentPercentEncode(code)
+      || code === 0x23 // U+0023 (#)
+      || code === 0x3F // U+003F (?)
+      || code === 0x7B // U+007B ({)
+      || code === 0x7D; // U+007D (})
+}
+
+// https://url.spec.whatwg.org/#userinfo-percent-encode-set
+export function isUserinfoPercentEncode(code: number): boolean {
+  return isPathPercentEncode(code)
+      || code === 0x2F // U+002F (/)
+      || code === 0x3A // U+003A (/)
+      || code === 0x3B // U+003B (;)
+      || code === 0x3D // U+003D (=)
+      || code === 0x40 // U+0040 (@)
+      || (code >= 0x5B && code <= 0x5E) // U+005B ([), U+005C (\), U+005D (]), U+005E (^)
+      || code === 0x7C; // U+007C (|)
+}
+
+// https://url.spec.whatwg.org/#query-state
+export function isQueryPercentEncode(code: number): boolean {
+  return code < 0x21 // 0x21 (!)
+      || code > 0x7E // 0x7E (~)
+      || (code === 0x22) // 0x22 (")
+      || (code === 0x23) // 0x23 (#)
+      || (code === 0x3C) // 0x3C (<)
+      || (code === 0x3E); // 0x3E (>)
+}
+
+// https://url.spec.whatwg.org/#utf-8-percent-encode
+export function utf8PercentEncode(c: string, percentEncodeSet: (code: number) => boolean): string {
+  const code = c.charCodeAt(0);
+  return percentEncodeSet(code) ? percentEncode(c) : c;
 }
 
 // https://url.spec.whatwg.org/#urlencoded-parsing
@@ -114,7 +150,7 @@ function serializeUrlEncodedBytes(input: string): string {
     }
     else {
       // Append byte, percent encoded, to output.
-      output += percentEscape(byte);
+      output += percentEncode(byte);
     }
   }
   // 3. Return output.

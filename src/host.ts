@@ -1,4 +1,4 @@
-import { percentEscape } from "./encode";
+import { isC0ControlPercentEncode, utf8PercentEncode } from "./encode";
 
 export const enum HostType {
   DOMAIN_OR_IPV4,
@@ -51,7 +51,7 @@ function parseOpaqueHost(input: string): OpaqueHost | undefined {
   // 3. For each code point in input, UTF-8 percent encode it using the C0 control percent-encode set,
   // and append the result to output.
   for (let i = 0; i < input.length; i++) {
-    output += percentEscape(input[i]);
+    output += utf8PercentEncode(input[i], isC0ControlPercentEncode);
   }
   // 4. Return output.
   return {

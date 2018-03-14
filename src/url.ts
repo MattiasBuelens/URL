@@ -1,7 +1,14 @@
 /* Any copyright is dedicated to the Public Domain.
 * http://creativecommons.org/publicdomain/zero/1.0/ */
 
-import { percentEscape, percentEscapeQuery } from "./encode";
+import {
+  isC0ControlPercentEncode,
+  isFragmentPercentEncode,
+  isPathPercentEncode,
+  isQueryPercentEncode,
+  isUserinfoPercentEncode,
+  utf8PercentEncode
+} from "./encode";
 import { Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 
@@ -501,7 +508,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             }
             // 2. Let encodedCodePoints be the result of running UTF-8 percent encode codePoint
             //    using the userinfo percent-encode set.
-            const encodedCodePoints = percentEscape(codePoint);
+            const encodedCodePoints = utf8PercentEncode(codePoint, isUserinfoPercentEncode);
             // 3. If passwordTokenSeenFlag is set, then append encodedCodePoints to url’s password.
             if (passwordTokenSeenFlag) {
               url._password += encodedCodePoints;
@@ -934,7 +941,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           }
           // 3. UTF-8 percent encode c using the path percent-encode set,
           //    and append the result to buffer.
-          buffer += percentEscape(c);
+          buffer += utf8PercentEncode(c, isPathPercentEncode);
         }
         break;
 
@@ -962,7 +969,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           //    UTF-8 percent encode c using the C0 control percent-encode set,
           //    and append the result to url’s path[0].
           if (EOF !== c) {
-            url._path[0] += percentEscape(c);
+            url._path[0] += utf8PercentEncode(c, isC0ControlPercentEncode);
           }
         }
         break;
@@ -975,7 +982,9 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // TODO encoding
           // 3.  For each byte in buffer:
           for (let index = 0; index < buffer.length; index++) {
-            url._query += percentEscapeQuery(buffer[index]);
+            // 1. If byte is less than 0x21 (!), greater than 0x7E (~), or is 0x22 ("), 0x23 (#), 0x3C (<), or 0x3E (>), append byte, percent encoded, to url’s query.
+            // 2. Otherwise, append a code point whose value is byte to url’s query.
+            url._query += utf8PercentEncode(buffer[index], isQueryPercentEncode);
           }
           // 4. Set buffer to the empty string.
           buffer = '';
@@ -1018,7 +1027,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           }
           // 3. UTF-8 percent encode c using the fragment percent-encode set and append the result to url’s fragment.
           // TODO Handle encoding
-          url._fragment += percentEscape(c);
+          url._fragment += utf8PercentEncode(c, isFragmentPercentEncode);
         }
         break;
     }
