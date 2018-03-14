@@ -3,7 +3,7 @@
 
 import { percentEscape, percentEscapeQuery } from "./encode";
 import { Host, HostType, parseHost, serializeHost } from "./host";
-import { emptyParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
+import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -1135,7 +1135,7 @@ class URL {
     this._url = parsedURL;
     // 8. Set result’s query object to a new URLSearchParams object using query,
     // and then set that query object’s url object to result.
-    this._query = new URLSearchParams(query);
+    this._query = newURLSearchParams(query);
     setParamsUrl(this._query, this);
     // 9. Return result.
   }

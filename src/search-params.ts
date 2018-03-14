@@ -2,6 +2,8 @@ import { jURL, setUrlQuery } from "./url";
 import { compareByCodePoints, isSequence, sequenceToArray } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./encode";
 
+export type URLSearchParamsInit = Array<[string, string]> | { [name: string]: string } | string;
+
 function compareParams(a: [string, string], b: [string, string]): number {
   return compareByCodePoints(a[0], b[0]);
 }
@@ -25,23 +27,20 @@ export function setParamsQuery(params: URLSearchParams, query: string) {
   (params as any as URLSearchParamsInternals)._list = parseUrlEncoded(query);
 }
 
-// endregion
+// https://url.spec.whatwg.org/#concept-urlsearchparams-new
+export function newURLSearchParams(init: URLSearchParamsInit = ''): URLSearchParams {
+  // 1. Let query be a new URLSearchParams object.
+  const query: URLSearchParams = Object.create(URLSearchParams.prototype);
+  initParams(query as any as URLSearchParamsInternals, init);
+  // 5. Return query.
+  return query;
+}
 
-export class URLSearchParams implements Iterable<[string, string]> {
-  private _list: Array<[string, string]> = [];
-  private _url: jURL | null = null;
-
-  constructor(init: Array<[string, string]> | { [name: string]: string } | string = '') {
-    // https://url.spec.whatwg.org/#concept-urlsearchparams-new
-    // 1. Let query be a new URLSearchParams object.
+// https://url.spec.whatwg.org/#concept-urlsearchparams-new
+function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit = '') {
     // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
     if (typeof init === 'string') {
-      // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
-      // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
-      if (init.length > 0 && '?' === init[0]) {
-        init = init.slice(1);
-      }
-      this._list = parseUrlEncoded(init);
+      query._list = parseUrlEncoded(init);
     }
     // 2. If init is a sequence, then for each pair in init:
     else if (isSequence(init)) {
@@ -54,7 +53,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
         }
         // 2. Append a new name-value pair whose name is pair’s first item,
         //    and value is pair’s second item, to query’s list.
-        this._list.push([String(pairArray[0]), String(pairArray[1])]);
+        query._list.push([String(pairArray[0]), String(pairArray[1])]);
       }
     }
     // 3. Otherwise, if init is a record, then for each name → value in init,
@@ -62,11 +61,25 @@ export class URLSearchParams implements Iterable<[string, string]> {
     else {
       for (let name in init) {
         if (Object.prototype.hasOwnProperty.call(init, name)) {
-          this._list.push([name, String(init[name])]);
+          query._list.push([name, String(init[name])]);
         }
       }
     }
-    // 5. Return query.
+}
+
+// endregion
+
+export class URLSearchParams implements Iterable<[string, string]> {
+  private _list: Array<[string, string]> = [];
+  private _url: jURL | null = null;
+
+  constructor(init: URLSearchParamsInit = '') {
+    // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
+    // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
+    if (typeof init === 'string' && init.length > 0 && '?' === init[0]) {
+      init = init.slice(1);
+    }
+    initParams(this as any as URLSearchParamsInternals, init);
   }
 
   private _update(): void {
