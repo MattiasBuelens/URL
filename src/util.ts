@@ -21,7 +21,7 @@ export function sequenceToArray<T>(x: Iterable<T>): T[] {
   }
 }
 
-export function getCodePointAt(input: string, index: number): number {
+export function getCodePointAt(input: string, index: number): number | undefined {
   const size = input.length;
   // Get the first code unit
   let first = input.charCodeAt(index);
@@ -45,7 +45,7 @@ export function getCodePoints(input: string): number[] {
   const size = input.length;
   for (let index = 0; index < size; index++) {
     // Get the first code unit
-    let codePoint = getCodePointAt(input, index);
+    let codePoint = getCodePointAt(input, index)!;
     if (codePoint > 0xFFFF) {
       index++;
     }
