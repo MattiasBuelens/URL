@@ -1,3 +1,5 @@
+import { getCodePointAt } from "./util";
+
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
 
@@ -64,7 +66,7 @@ export function isQueryPercentEncode(code: number): boolean {
 
 // https://url.spec.whatwg.org/#utf-8-percent-encode
 export function utf8PercentEncode(c: string, percentEncodeSet: (code: number) => boolean): string {
-  const code = c.charCodeAt(0);
+  const code = getCodePointAt(c, 0);
   return percentEncodeSet(code) ? percentEncode(c) : c;
 }
 
