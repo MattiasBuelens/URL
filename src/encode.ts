@@ -1,4 +1,4 @@
-import { getCodePointAt, getCodePoints } from "./util";
+import { fromCodePoints, getCodePointAt, getCodePoints } from "./util";
 
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -73,7 +73,7 @@ export function utf8PercentEncode(c: string, percentEncodeSet: (code: number) =>
 export function utf8PercentEncodeString(c: string, percentEncodeSet: (code: number) => boolean): string {
   let output = '';
   for (let codePoint of getCodePoints(c)) {
-    output += percentEncodeSet(codePoint) ? percentEncode(c) : c;
+    output += percentEncodeSet(codePoint) ? percentEncode(c) : fromCodePoints([codePoint]);
   }
   return output;
 }
