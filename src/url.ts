@@ -7,7 +7,8 @@ import {
   isPathPercentEncode,
   isQueryPercentEncode,
   isUserinfoPercentEncode,
-  utf8PercentEncode
+  utf8PercentEncode,
+  utf8PercentEncodeString
 } from "./encode";
 import { Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
@@ -1221,8 +1222,11 @@ class URL {
     if (cannotHaveUsernamePasswordPort(this._url)) {
       return;
     }
-    // TODO Handle percent encoding
-    this._url._username = username;
+    // https://url.spec.whatwg.org/#set-the-username
+    // 1. Set url’s username to the empty string.
+    // 2. For each code point in username, UTF-8 percent encode it using the userinfo percent-encode set,
+    //    and append the result to url’s username.
+    this._url._username = utf8PercentEncodeString(username, isUserinfoPercentEncode);
   }
 
   get password(): string {
@@ -1233,8 +1237,11 @@ class URL {
     if (cannotHaveUsernamePasswordPort(this._url)) {
       return;
     }
-    // TODO Handle percent encoding
-    this._url._password = password;
+    // https://url.spec.whatwg.org/#set-the-password
+    // 1. Set url’s password to the empty string.
+    // 2. For each code point in password, UTF-8 percent encode it using the userinfo percent-encode set,
+    //    and append the result to url’s password.
+    this._url._password = utf8PercentEncodeString(password, isUserinfoPercentEncode);
   }
 
   get host(): string {
