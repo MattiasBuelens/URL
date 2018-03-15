@@ -525,6 +525,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // then:
           // 1. If @ flag is set and buffer is the empty string, validation error, return failure.
           if (seenAt && '' === buffer) {
+            // e.g. http://user@/foo
             err(''); // TODO
             throw new TypeError('Invalid host');
           }
