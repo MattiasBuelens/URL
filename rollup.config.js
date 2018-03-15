@@ -5,7 +5,8 @@ module.exports = {
   output: {
     file: 'dist/url.js',
     format: 'umd',
-    name: 'URL'
+    name: 'URL',
+    sourcemap: true
   },
   plugins: [
     rollupTypescript({
