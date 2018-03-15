@@ -130,8 +130,8 @@ const enum ParserState {
 }
 
 function parse(input: string, base: UrlRecord | null): UrlRecord;
-function parse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): boolean;
-function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, stateOverride?: ParserState | null): UrlRecord | boolean {
+function parse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): void;
+function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, stateOverride?: ParserState | null): UrlRecord | void {
   let errors: string[] = [];
 
   function err(message: string) {
@@ -207,19 +207,19 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           if (stateOverride) {
             // 1. If url’s scheme is a special scheme and buffer is not a special scheme, then return.
             if (isSpecialScheme(url._scheme) && !isSpecialScheme(buffer)) {
-              return true;
+              return;
             }
             // 2. If url’s scheme is not a special scheme and buffer is a special scheme, then return.
             if (!isSpecialScheme(url._scheme) && isSpecialScheme(buffer)) {
-              return true;
+              return;
             }
             // 3. If url includes credentials or has a non-null port, and buffer is "file", then return.
             if ((includesCredentials(url) || url._port !== null) && 'file' === buffer) {
-              return true;
+              return;
             }
             // 4. If url’s scheme is "file" and its host is an empty host or null, then return.
             if (url._scheme === 'file' && (url._host === '' || url._host === null)) {
-              return true;
+              return;
             }
           }
           // 2. Set url’s scheme to buffer.
@@ -231,7 +231,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
               url._port = null;
             }
             // 2. Return.
-            return true;
+            return;
           }
           // 4. Set buffer to the empty string.
           buffer = '';
@@ -567,7 +567,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           state = ParserState.PORT;
           // 5. If state override is given and state override is hostname state, then return.
           if (stateOverride === ParserState.HOSTNAME) {
-            return true;
+            return;
           }
         }
         // 3. Otherwise, if one of the following is true:
@@ -589,7 +589,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           //    validation error, return.
           if (stateOverride && '' === buffer && (includesCredentials(url) || url._port !== null)) {
             err(''); // TODO
-            return true;
+            return;
           }
           // 3. Let host be the result of host parsing buffer with url is special.
           const host = parseHost(buffer, isSpecial(url));
@@ -603,7 +603,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           state = ParserState.PATH_START;
           // 6. If state override is given, then return.
           if (stateOverride) {
-            return true;
+            return;
           }
         }
         // 4. Otherwise:
@@ -653,7 +653,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           }
           // 2. If state override is given, then return.
           if (stateOverride) {
-            return true;
+            return;
           }
           // 3. Set state to path start state, and decrease pointer by one.
           state = ParserState.PATH_START;
@@ -781,7 +781,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             url._host = '';
             // 2. If state override is given, then return.
             if (stateOverride) {
-              return true;
+              return;
             }
             // 3. Set state to path start state.
             state = ParserState.PATH_START;
@@ -802,7 +802,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             url._host = host;
             // 5. If state override is given, then return.
             if (stateOverride) {
-              return true;
+              return;
             }
             // 6. Set buffer to the empty string and state to path start state.
             buffer = '';
