@@ -23,12 +23,12 @@ export interface OpaqueHost {
 
 export type Host = DomainOrIPV4Host | IPv6Host | OpaqueHost | '';
 
-export function parseHost(input: string, isSpecial: boolean): Host | undefined {
+export function parseHost(input: string, isSpecial: boolean): Host {
   // 1. If input starts with U+005B ([), then:
   if ('[' === input[0]) {
     // 1. If input does not end with U+005D (]), validation error, return failure.
     if (']' !== input[input.length - 1]) {
-      return undefined;
+      throw new TypeError('Invalid IPv6 address');
     }
     // 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
     return parseIPv6(input.slice(1, -1));
@@ -44,7 +44,7 @@ export function parseHost(input: string, isSpecial: boolean): Host | undefined {
   };
 }
 
-function parseOpaqueHost(input: string): OpaqueHost | undefined {
+function parseOpaqueHost(input: string): OpaqueHost {
   // TODO 1. If input contains a forbidden host code point excluding U+0025 (%), validation error, return failure.
   // 2. Let output be the empty string.
   let output = '';
@@ -60,7 +60,7 @@ function parseOpaqueHost(input: string): OpaqueHost | undefined {
   };
 }
 
-function parseIPv6(input: string): IPv6Host | undefined {
+function parseIPv6(input: string): IPv6Host {
   // TODO Validate IPv6
   return {
     _type: HostType.IPV6,

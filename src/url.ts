@@ -129,7 +129,7 @@ const enum ParserState {
   FRAGMENT
 }
 
-function parse(input: string, base: UrlRecord | null): UrlRecord | false;
+function parse(input: string, base: UrlRecord | null): UrlRecord;
 function parse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): boolean;
 function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, stateOverride?: ParserState | null): UrlRecord | boolean {
   let errors: string[] = [];
@@ -192,7 +192,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 3. Otherwise, validation error, return failure.
         else {
           err('Invalid scheme.');
-          return false;
+          throw new TypeError(`Invalid scheme`);
         }
         break;
 
@@ -279,7 +279,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 4. Otherwise, validation error, return failure.
         else {
           err(`Code point not allowed in scheme: ${c}`);
-          return false;
+          throw new TypeError(`Invalid scheme`);
         }
         break;
 
@@ -288,7 +288,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // and c is not U+0023 (#), validation error, return failure.
         if (!base || (base._cannotBeABaseURL && '#' !== c)) {
           err(''); // TODO
-          return false;
+          throw new TypeError('Invalid scheme');
         }
         // 2. Otherwise, if base’s cannot-be-a-base-URL flag is set and c is U+0023 (#),
         // set url’s scheme to base’s scheme, url’s path to a copy of base’s path,
@@ -526,7 +526,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 1. If @ flag is set and buffer is the empty string, validation error, return failure.
           if (seenAt && '' === buffer) {
             err(''); // TODO
-            return false;
+            throw new TypeError('Invalid host');
           }
           // 2. Decrease pointer by the number of code points in buffer plus one,
           // set buffer to the empty string, and set state to host state.
@@ -553,13 +553,13 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 1. If buffer is the empty string, validation error, return failure.
           if ('' === buffer) {
             err('Empty host');
-            return false;
+            throw new TypeError('Invalid host');
           }
           // 2. Let host be the result of host parsing buffer with url is special.
           const host = parseHost(buffer, isSpecial(url));
           // 3. If host is failure, then return failure.
           if (host === undefined) {
-            return false;
+            throw new TypeError('Invalid host');
           }
           // 4. Set url’s host to host, buffer to the empty string, and state to port state.
           url._host = host;
@@ -582,7 +582,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 1. If url is special and buffer is the empty string, validation error, return failure.
           if (isSpecial(url) && '' === buffer) {
             err(''); // TODO
-            return false;
+            throw new TypeError('Invalid host');
           }
           // 2. Otherwise, if state override is given, buffer is the empty string,
           //    and either url includes credentials or url’s port is non-null,
@@ -595,7 +595,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           const host = parseHost(buffer, isSpecial(url));
           // 4. If host is failure, then return failure.
           if (host === undefined) {
-            return false;
+            throw new TypeError('Invalid host');
           }
           // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
           url._host = host;
@@ -644,7 +644,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             // 2. If port is greater than 2^16 − 1, validation error, return failure.
             if (port > 2 ** 16 - 1) {
               err('Invalid port');
-              return false;
+              throw new TypeError('Invalid port');
             }
             // 3. Set url’s port to null, if port is url’s scheme’s default port, and to port otherwise.
             url._port = (port === defaultPorts[url._scheme]) ? null : port;
@@ -662,7 +662,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 3. Otherwise, validation error, return failure.
         else {
           err(''); // TODO
-          return false;
+          throw new TypeError(`Invalid port`);
         }
         break;
 
@@ -792,7 +792,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             let host = parseHost(buffer, isSpecial(url));
             // 2. If host is failure, then return failure.
             if (host === undefined) {
-              return false;
+              throw new TypeError('Invalid host');
             }
             // 3. If host is "localhost", then set host to the empty string.
             if ('' !== host && host._type === HostType.DOMAIN_OR_IPV4 && 'localhost' === host._domainOrAddress) {
