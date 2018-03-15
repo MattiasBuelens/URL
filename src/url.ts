@@ -1075,7 +1075,9 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
   }
   // 5. Otherwise, then for each string in url’s path, append U+002F (/) followed by the string to output.
   else {
-    output += '/' + url._path.join('/');
+    for (let part of url._path) {
+      output += '/' + part;
+    }
   }
   // 6. If url’s query is non-null, append U+003F (?), followed by url’s query, to output.
   if (null !== url._query) {
