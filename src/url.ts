@@ -1034,6 +1034,14 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
   return url;
 }
 
+function tryParse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): void {
+  try {
+    parse(input, base, url, stateOverride);
+  } catch {
+    // ignore
+  }
+}
+
 function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string {
   // 1. Let output be url’s scheme and U+003A (:) concatenated.
   let output = url._scheme + ':';
@@ -1120,19 +1128,21 @@ class URL {
     let parsedBase: UrlRecord | null = null;
     // 2. If base is given, then:
     if (base !== undefined) {
-      // 1. Let parsedBase be the result of running the basic URL parser on base.
-      const parsedBaseResult = parse(String(base), null);
-      // 2. If parsedBase is failure, then throw a TypeError exception.
-      if (parsedBaseResult === false) {
-        throw new TypeError('Invalid base URL');
+      try {
+        // 1. Let parsedBase be the result of running the basic URL parser on base.
+        parsedBase = parse(String(base), null);
+      } catch (e) {
+        // 2. If parsedBase is failure, then throw a TypeError exception.
+        throw new TypeError(`Invalid base URL: ${e.message}`);
       }
-      parsedBase = parsedBaseResult;
     }
-    // 3. Let parsedURL be the result of running the basic URL parser on url with parsedBase.
-    const parsedURL = parse(url, parsedBase);
-    // 4. If parsedURL is failure, throw a TypeError exception.
-    if (!parsedURL) {
-      throw new TypeError('Invalid URL');
+    let parsedURL: UrlRecord;
+    try {
+      // 3. Let parsedURL be the result of running the basic URL parser on url with parsedBase.
+      parsedURL = parse(url, parsedBase);
+    } catch (e) {
+      // 4. If parsedURL is failure, throw a TypeError exception.
+      throw new TypeError(`Invalid URL: ${e.message}`);
     }
     // 5. Let query be parsedURL’s query, if that is non-null, and the empty string otherwise.
     const query = parsedURL._query || '';
@@ -1159,11 +1169,13 @@ class URL {
   }
 
   set href(href: string) {
-    // 1. Let parsedURL be the result of running the basic URL parser on the given value.
-    const parsedURL = parse(String(href), null);
-    // 2. If parsedURL is failure, throw a TypeError exception.
-    if (parsedURL === false) {
-      throw new TypeError('Invalid URL');
+    let parsedURL: UrlRecord;
+    try {
+      // 1. Let parsedURL be the result of running the basic URL parser on the given value.
+      parsedURL = parse(String(href), null);
+    } catch (e) {
+      // 2. If parsedURL is failure, throw a TypeError exception.
+      throw new TypeError(`Invalid URL: ${e.message}`);
     }
     // 3. Set context object’s url to parsedURL.
     this._url = parsedURL;
@@ -1207,7 +1219,7 @@ class URL {
   }
 
   set protocol(protocol: string) {
-    parse(protocol + ':', null, this._url, ParserState.SCHEME_START);
+    tryParse(protocol + ':', null, this._url, ParserState.SCHEME_START);
   }
 
   get username(): string {
@@ -1261,7 +1273,7 @@ class URL {
       return;
     }
     // 2. Basic URL parse the given value with context object’s url as url and host state as state override.
-    parse(host, null, this._url, ParserState.HOST);
+    tryParse(host, null, this._url, ParserState.HOST);
   }
 
   get hostname(): string {
@@ -1279,7 +1291,7 @@ class URL {
       return;
     }
     // 2. Basic URL parse the given value with context object’s url as url and hostname state as state override.
-    parse(hostname, null, this._url, ParserState.HOSTNAME);
+    tryParse(hostname, null, this._url, ParserState.HOSTNAME);
   }
 
   get port(): string {
@@ -1302,7 +1314,7 @@ class URL {
     }
     // 3. Otherwise, basic URL parse the given value with context object’s url as url and port state as state override.
     else {
-      parse(port, null, this._url, ParserState.PORT);
+      tryParse(port, null, this._url, ParserState.PORT);
     }
   }
 
@@ -1328,7 +1340,7 @@ class URL {
     // 2. Empty context object’s url’s path.
     this._url._path.length = 0;
     // 3. Basic URL parse the given value with context object’s url as url and path start state as state override.
-    parse(pathname, null, this._url, ParserState.PATH_START);
+    tryParse(pathname, null, this._url, ParserState.PATH_START);
   }
 
   get search(): string {
@@ -1364,7 +1376,7 @@ class URL {
     // 4. Set url’s query to the empty string.
     this._url._query = '';
     // 5. Basic URL parse input with url as url and query state as state override.
-    parse(search, null, this._url, ParserState.QUERY);
+    tryParse(search, null, this._url, ParserState.QUERY);
     // 6. Set context object’s query object’s list to the result of parsing input.
     setParamsQuery(this._query, search);
   }
@@ -1391,7 +1403,7 @@ class URL {
     // 3. Set context object’s url’s fragment to the empty string.
     this._url._fragment = '';
     // 4. Basic URL parse input with context object’s url as url and fragment state as state override.
-    parse(hash, null, this._url, ParserState.FRAGMENT);
+    tryParse(hash, null, this._url, ParserState.FRAGMENT);
   }
 }
 
