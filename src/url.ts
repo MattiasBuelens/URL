@@ -285,7 +285,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         }
         // 4. Otherwise, validation error, return failure.
         else {
-          err('Code point not allowed in scheme: ' + c);
+          err(`Code point not allowed in scheme: ${c}`);
           return false;
         }
         break;
@@ -1053,7 +1053,7 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
       output += url._username;
       // 2. If url’s password is not the empty string, then append U+003A (:), followed by url’s password, to output.
       if ('' !== url._password) {
-        output += ':' + url._password;
+        output += `:${url._password}`;
       }
       // 3. Append U+0040 (@) to output.
       output += '@';
@@ -1062,7 +1062,7 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
     output += serializeHost(url._host);
     // 4. If url’s port is non-null, append U+003A (:) followed by url’s port, serialized, to output.
     if (null !== url._port) {
-      output += ':' + url._port;
+      output += `:${url._port}`;
     }
   }
   // 3. Otherwise, if url’s host is null and url’s scheme is "file", append "//" to output.
@@ -1076,16 +1076,16 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
   // 5. Otherwise, then for each string in url’s path, append U+002F (/) followed by the string to output.
   else {
     for (let part of url._path) {
-      output += '/' + part;
+      output += `/${part}`;
     }
   }
   // 6. If url’s query is non-null, append U+003F (?), followed by url’s query, to output.
   if (null !== url._query) {
-    output += '?' + url._query;
+    output += `?${url._query}`;
   }
   // 7. If the exclude fragment flag is unset and url’s fragment is non-null, append U+0023 (#), followed by url’s fragment, to output.
   if (!excludeFragment && null !== url._fragment) {
-    output += '#' + url._fragment;
+    output += `#${url._fragment}`;
   }
   // 8. Return output.
   return output;
