@@ -22,22 +22,15 @@ defaultPorts['https'] = 443;
 defaultPorts['ws'] = 80;
 defaultPorts['wss'] = 443;
 
+const SINGLE_DOT = /^\.|%2e$/i;
+const DOUBLE_DOT = /^(?:\.|%2e){2}$/i;
+
 function isSingleDotPathSegment(input: string): boolean {
-  if (input === '.') {
-    return true;
-  }
-  input = input.toLowerCase();
-  return '%2e' === input;
+  return SINGLE_DOT.test(input);
 }
 
 function isDoubleDotPathSegment(input: string): boolean {
-  if (input === '..') {
-    return true;
-  }
-  input = input.toLowerCase();
-  return '.%2e' === input ||
-      '%2e.' === input ||
-      '%2e%2e' === input;
+  return DOUBLE_DOT.test(input);
 }
 
 function isSpecialScheme(scheme: string): boolean {
