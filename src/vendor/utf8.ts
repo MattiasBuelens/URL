@@ -58,41 +58,48 @@ function checkScalarValue(codePoint: number) {
 
 /*--------------------------------------------------------------------------*/
 
-function createByte(codePoint: number, shift: number) {
-  return stringFromCharCode(((codePoint >> shift) & 0x3F) | 0x80);
+function createByte(codePoint: number, shift: number): number {
+  return ((codePoint >> shift) & 0x3F) | 0x80;
 }
 
-function encodeCodePoint(codePoint: number): string {
+function encodeCodePoint(codePoint: number, output: number[]) {
   if ((codePoint & 0xFFFFFF80) == 0) { // 1-byte sequence
-    return stringFromCharCode(codePoint);
+    output.push(codePoint);
+    return;
   }
-  var symbol = '';
   if ((codePoint & 0xFFFFF800) == 0) { // 2-byte sequence
-    symbol = stringFromCharCode(((codePoint >> 6) & 0x1F) | 0xC0);
+    output.push(((codePoint >> 6) & 0x1F) | 0xC0);
   }
   else if ((codePoint & 0xFFFF0000) == 0) { // 3-byte sequence
     checkScalarValue(codePoint);
-    symbol = stringFromCharCode(((codePoint >> 12) & 0x0F) | 0xE0);
-    symbol += createByte(codePoint, 6);
+    output.push(((codePoint >> 12) & 0x0F) | 0xE0);
+    output.push(createByte(codePoint, 6));
   }
   else if ((codePoint & 0xFFE00000) == 0) { // 4-byte sequence
-    symbol = stringFromCharCode(((codePoint >> 18) & 0x07) | 0xF0);
-    symbol += createByte(codePoint, 12);
-    symbol += createByte(codePoint, 6);
+    output.push(((codePoint >> 18) & 0x07) | 0xF0);
+    output.push(createByte(codePoint, 12));
+    output.push(createByte(codePoint, 6));
   }
-  symbol += stringFromCharCode((codePoint & 0x3F) | 0x80);
-  return symbol;
+  output.push((codePoint & 0x3F) | 0x80);
 }
 
-function utf8encode(string: string): string {
-  var codePoints = ucs2decode(string);
+function utf8encoderaw(codePoints: number[]): number[] {
   var length = codePoints.length;
   var index = -1;
   var codePoint: number;
-  var byteString = '';
+  var bytes: number[] = [];
   while (++index < length) {
     codePoint = codePoints[index];
-    byteString += encodeCodePoint(codePoint);
+    encodeCodePoint(codePoint, bytes);
+  }
+  return bytes;
+}
+
+function utf8encode(string: string): string {
+  var bytes = utf8encoderaw(ucs2decode(string));
+  var byteString = '';
+  for (let byte of bytes) {
+    byteString += stringFromCharCode(byte);
   }
   return byteString;
 }
@@ -182,8 +189,8 @@ var byteArray: number[];
 var byteCount: number;
 var byteIndex: number;
 
-function utf8decode(byteString: string): string {
-  byteArray = ucs2decode(byteString);
+function utf8decoderaw(bytes: number[]): number[] {
+  byteArray = bytes.slice();
   byteCount = byteArray.length;
   byteIndex = 0;
   var codePoints: number[] = [];
@@ -191,7 +198,11 @@ function utf8decode(byteString: string): string {
   while ((tmp = decodeSymbol()) !== false) {
     codePoints.push(tmp);
   }
-  return ucs2encode(codePoints);
+  return codePoints;
+}
+
+function utf8decode(byteString: string): string {
+  return ucs2encode(utf8decoderaw(ucs2decode(byteString)));
 }
 
 /*--------------------------------------------------------------------------*/
@@ -199,5 +210,7 @@ function utf8decode(byteString: string): string {
 export const version = '3.0.0';
 export {
   utf8encode,
-  utf8decode
+  utf8encoderaw,
+  utf8decode,
+  utf8decoderaw
 };
