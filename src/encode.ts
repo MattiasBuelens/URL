@@ -1,4 +1,5 @@
 import { fromCodePoints, getCodePointAt, getCodePoints } from "./util";
+import { utf8encode } from "./vendor/utf8";
 
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -66,14 +67,21 @@ export function isQueryPercentEncode(code: number): boolean {
 
 // https://url.spec.whatwg.org/#utf-8-percent-encode
 export function utf8PercentEncode(c: string, percentEncodeSet: (code: number) => boolean): string {
+  // 1. If codePoint is not in percentEncodeSet, then return codePoint.
   const code = getCodePointAt(c, 0)!;
-  return percentEncodeSet(code) ? percentEncode(c) : c;
+  if (!percentEncodeSet(code)) {
+    return c;
+  }
+  // 2. Let bytes be the result of running UTF-8 encode on codePoint.
+  const bytes = utf8encode(c);
+  // 3. Percent encode each byte in bytes, and then return the results concatenated, in the same order.
+  return percentEncode(bytes);
 }
 
 export function utf8PercentEncodeString(c: string, percentEncodeSet: (code: number) => boolean): string {
   let output = '';
   for (let codePoint of getCodePoints(c)) {
-    output += percentEncodeSet(codePoint) ? percentEncode(c) : fromCodePoints([codePoint]);
+    output += utf8PercentEncode(fromCodePoints([codePoint]), percentEncodeSet);
   }
   return output;
 }

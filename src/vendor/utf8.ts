@@ -197,5 +197,7 @@ function utf8decode(byteString: string): string {
 /*--------------------------------------------------------------------------*/
 
 export const version = '3.0.0';
-export { utf8encode as encode };
-export { utf8decode as decode };
+export {
+  utf8encode,
+  utf8decode
+};
