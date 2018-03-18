@@ -423,7 +423,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 1. If url is special and c is U+002F (/) or U+005C (\), then:
         if (isSpecial(url) && ('/' === c || '\\' === c)) {
           // 1. If c is U+005C (\), validation error.
-          if ('\\' == c) {
+          if ('\\' === c) {
             err('\\ is an invalid code point.');
           }
           // 2. Set state to special authority ignore slashes state.
@@ -635,7 +635,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         ) {
           // then:
           // 1. If buffer is not the empty string, then:
-          if ('' != buffer) {
+          if ('' !== buffer) {
             // 1. Let port be the mathematical integer value that is represented
             // by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
             const port = parseInt(buffer, 10);
@@ -817,7 +817,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 1. If url is special, then:
         if (isSpecial(url)) {
           // 1. If c is U+005C (\), validation error.
-          if ('\\' == c) {
+          if ('\\' === c) {
             err('\\ not allowed in path.');
           }
           // 2. Set state to path state.
@@ -858,7 +858,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         if (
             (EOF === c || '/' === c) ||
             (isSpecial(url) && '\\' === c) ||
-            (!stateOverride && ('?' == c || '#' == c))
+            (!stateOverride && ('?' === c || '#' === c))
         ) {
           // then:
           // 1. If url is special and c is U+005C (\), validation error.
@@ -905,19 +905,19 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 6. If url’s scheme is "file" and c is the EOF code point, U+003F (?), or U+0023 (#),
           //    then while url’s path’s size is greater than 1 and url’s path[0] is the empty string,
           //    validation error, remove the first item from url’s path.
-          if ('file' === url._scheme && (EOF === c || '?' == c || '#' == c)) {
+          if ('file' === url._scheme && (EOF === c || '?' === c || '#' === c)) {
             while (url._path.length > 1 && '' === url._path[0]) {
               err(''); // TODO
               url._path.shift();
             }
           }
           // 7. If c is U+003F (?), then set url’s query to the empty string and state to query state.
-          if ('?' == c) {
+          if ('?' === c) {
             url._query = '';
             state = ParserState.QUERY;
           }
           // 8. If c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
-          else if ('#' == c) {
+          else if ('#' === c) {
             url._fragment = '';
             state = ParserState.FRAGMENT;
           }

@@ -12,7 +12,7 @@ function ucs2decode(string: string): number[] {
     if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
       // high surrogate, and there is a next character
       const extra = string.charCodeAt(counter++);
-      if ((extra & 0xFC00) == 0xDC00) { // low surrogate
+      if ((extra & 0xFC00) === 0xDC00) { // low surrogate
         output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
       } else {
         // unmatched surrogate; only append this code unit, in case the next
@@ -57,19 +57,19 @@ function createByte(codePoint: number, shift: number): number {
 }
 
 function encodeCodePoint(codePoint: number, output: number[]) {
-  if ((codePoint & 0xFFFFFF80) == 0) { // 1-byte sequence
+  if ((codePoint & 0xFFFFFF80) === 0) { // 1-byte sequence
     output.push(codePoint);
     return;
   }
-  if ((codePoint & 0xFFFFF800) == 0) { // 2-byte sequence
+  if ((codePoint & 0xFFFFF800) === 0) { // 2-byte sequence
     output.push(((codePoint >> 6) & 0x1F) | 0xC0);
   }
-  else if ((codePoint & 0xFFFF0000) == 0) { // 3-byte sequence
+  else if ((codePoint & 0xFFFF0000) === 0) { // 3-byte sequence
     checkScalarValue(codePoint);
     output.push(((codePoint >> 12) & 0x0F) | 0xE0);
     output.push(createByte(codePoint, 6));
   }
-  else if ((codePoint & 0xFFE00000) == 0) { // 4-byte sequence
+  else if ((codePoint & 0xFFE00000) === 0) { // 4-byte sequence
     output.push(((codePoint >> 18) & 0x07) | 0xF0);
     output.push(createByte(codePoint, 12));
     output.push(createByte(codePoint, 6));
@@ -108,7 +108,7 @@ function readContinuationByte(): number {
   const continuationByte = byteArray[byteIndex] & 0xFF;
   byteIndex++;
 
-  if ((continuationByte & 0xC0) == 0x80) {
+  if ((continuationByte & 0xC0) === 0x80) {
     return continuationByte & 0x3F;
   }
 
@@ -127,7 +127,7 @@ function decodeSymbol(): number | false {
     throw new Error('Invalid byte index');
   }
 
-  if (byteIndex == byteCount) {
+  if (byteIndex === byteCount) {
     return false;
   }
 
@@ -136,12 +136,12 @@ function decodeSymbol(): number | false {
   byteIndex++;
 
   // 1-byte sequence (no continuation bytes)
-  if ((byte1 & 0x80) == 0) {
+  if ((byte1 & 0x80) === 0) {
     return byte1;
   }
 
   // 2-byte sequence
-  if ((byte1 & 0xE0) == 0xC0) {
+  if ((byte1 & 0xE0) === 0xC0) {
     byte2 = readContinuationByte();
     codePoint = ((byte1 & 0x1F) << 6) | byte2;
     if (codePoint >= 0x80) {
@@ -152,7 +152,7 @@ function decodeSymbol(): number | false {
   }
 
   // 3-byte sequence (may include unpaired surrogates)
-  if ((byte1 & 0xF0) == 0xE0) {
+  if ((byte1 & 0xF0) === 0xE0) {
     byte2 = readContinuationByte();
     byte3 = readContinuationByte();
     codePoint = ((byte1 & 0x0F) << 12) | (byte2 << 6) | byte3;
@@ -165,7 +165,7 @@ function decodeSymbol(): number | false {
   }
 
   // 4-byte sequence
-  if ((byte1 & 0xF8) == 0xF0) {
+  if ((byte1 & 0xF8) === 0xF0) {
     byte2 = readContinuationByte();
     byte3 = readContinuationByte();
     byte4 = readContinuationByte();
