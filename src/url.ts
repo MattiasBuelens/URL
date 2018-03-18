@@ -24,7 +24,7 @@ defaultPorts['https'] = 443;
 defaultPorts['ws'] = 80;
 defaultPorts['wss'] = 443;
 
-const SINGLE_DOT = /^\.|%2e$/i;
+const SINGLE_DOT = /^(?:\.|%2e)$/i;
 const DOUBLE_DOT = /^(?:\.|%2e){2}$/i;
 
 function isSingleDotPathSegment(input: string): boolean {
