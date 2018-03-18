@@ -103,9 +103,9 @@ export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: nu
   return bytes.map(percentEncode).join('');
 }
 
-export function utf8PercentEncodeString(c: string, percentEncodeSet: (code: number) => boolean): string {
+export function utf8PercentEncodeString(input: string, percentEncodeSet: (code: number) => boolean): string {
   let output = '';
-  for (let codePoint of ucs2decode(c)) {
+  for (let codePoint of ucs2decode(input)) {
     output += utf8PercentEncode(codePoint, percentEncodeSet);
   }
   return output;
