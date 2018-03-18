@@ -1,3 +1,8 @@
+export const ALPHA = /[a-zA-Z]/;
+export const DIGIT = /[0-9]/;
+export const HEX_DIGIT = /[0-9a-fA-F]/;
+export const ALPHANUMERIC = /[a-zA-Z0-9+\-.]/;
+
 export type Tuple8<T> = [T, T, T, T, T, T, T, T];
 
 export const isArray: typeof Array.isArray = Array.isArray || function (x) {

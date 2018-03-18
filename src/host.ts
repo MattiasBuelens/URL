@@ -1,5 +1,5 @@
 import { isC0ControlPercentEncode, utf8PercentEncode } from "./encode";
-import { swap, Tuple8 } from "./util";
+import { DIGIT, HEX_DIGIT, swap, Tuple8 } from "./util";
 
 export const enum HostType {
   DOMAIN_OR_IPV4,
@@ -65,9 +65,6 @@ function parseOpaqueHost(input: string): OpaqueHost {
     _data: output
   };
 }
-
-const DIGIT = /[0-9]/;
-const HEX_DIGIT = /[0-9a-fA-F]/;
 
 // https://url.spec.whatwg.org/#concept-ipv6-parser
 function parseIPv6(input: string): IPv6Address {

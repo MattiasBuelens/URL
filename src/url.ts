@@ -12,6 +12,7 @@ import {
 } from "./encode";
 import { Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
+import { ALPHA, ALPHANUMERIC, DIGIT, HEX_DIGIT } from "./util";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -98,10 +99,6 @@ function cannotHaveUsernamePasswordPort(url: UrlRecord): boolean {
 }
 
 const EOF = undefined;
-const ALPHA = /[a-zA-Z]/;
-const DIGIT = /[0-9]/;
-const HEX_DIGIT = /[0-9a-fA-F]/;
-const ALPHANUMERIC = /[a-zA-Z0-9+\-.]/;
 const TAB_OR_NEWLINE = /\t|\n|\r/g;
 const LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE = /^[\x00-\x1f ]+|[\x00-\x1f ]+$/g;
 
