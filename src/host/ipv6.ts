@@ -1,5 +1,6 @@
 import { DIGIT, HEX_DIGIT, swap, Tuple8 } from "../util";
 
+// https://url.spec.whatwg.org/#concept-ipv6
 export type IPv6Address = Tuple8<number>; // eight 16-bit unsigned integers
 
 // https://url.spec.whatwg.org/#concept-ipv6-parser

@@ -94,7 +94,6 @@ export function serializeHost(host: Host): string {
     case HostType.IPV4:
       return serializeIPv4(host._address);
     case HostType.IPV6:
-      // TODO Compress IPv6
       return `[${serializeIPv6(host._address)}]`;
     case HostType.OPAQUE:
       return host._data;
