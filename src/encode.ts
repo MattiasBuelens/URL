@@ -1,5 +1,5 @@
-import { fromCodePoints, getCodePoints } from "./util";
-import { utf8encoderaw } from "./vendor/utf8";
+import { fromCodePoints, getCodePoints, isHexDigit, parseHexDigit } from "./util";
+import { utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
 
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -7,6 +7,35 @@ const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
 // https://url.spec.whatwg.org/#percent-encode
 export function percentEncode(byte: number): string {
   return `%${byte <= 0xF ? '0' : ''}${byte.toString(16).toUpperCase()}`;
+}
+
+// https://url.spec.whatwg.org/#percent-decode
+export function percentDecode(input: number[]): number[] {
+  // 1. Let output be an empty byte sequence.
+  let output: number[] = [];
+  // 2. For each byte byte in input:
+  const size = input.length;
+  for (let index = 0; index < size; index++) {
+    const byte = input[index];
+    // 1. If byte is not 0x25 (%), then append byte to output.
+    // 2. Otherwise, if byte is 0x25 (%) and the next two bytes after byte in input are not
+    //    in the ranges 0x30 (0) to 0x39 (9), 0x41 (A) to 0x46 (F), and 0x61 (a) to 0x66 (f), all inclusive,
+    //    append byte to output.
+    // 3. Otherwise:
+    if (0x25 === byte && index + 2 < size && isHexDigit(input[index + 1]) && isHexDigit(input[index + 2])) {
+      // 1. Let bytePoint be the two bytes after byte in input, decoded, and then interpreted as hexadecimal number.
+      const bytePoint = parseHexDigit(input[index + 1]) << 4 | parseHexDigit(input[index + 2]);
+      // 2. Append a byte whose value is bytePoint to output.
+      output.push(bytePoint);
+      // 3. Skip the next two bytes in input.
+      index += 2;
+    }
+    else {
+      output.push(byte);
+    }
+  }
+  // 3. Return output.
+  return output;
 }
 
 // https://infra.spec.whatwg.org/#c0-control
@@ -82,9 +111,8 @@ export function utf8PercentEncodeString(c: string, percentEncodeSet: (code: numb
   return output;
 }
 
-export function stringPercentDecode(input: string): string {
-  // TODO Correct?
-  return decodeURIComponent(input);
+export function utf8PercentDecodeString(input: string): string {
+  return fromCodePoints(utf8decoderaw(percentDecode(getCodePoints(input))));
 }
 
 // https://url.spec.whatwg.org/#urlencoded-parsing
@@ -119,8 +147,8 @@ export function parseUrlEncoded(input: string): Array<[string, string]> {
     value = value.replace(PLUS, ' ');
     // 5. Let nameString and valueString be the result of running UTF-8 decode without BOM
     //    on the percent decoding of name and value, respectively.
-    const nameString = stringPercentDecode(name);
-    const valueString = stringPercentDecode(value);
+    const nameString = utf8PercentDecodeString(name);
+    const valueString = utf8PercentDecodeString(value);
     // 6. Append (nameString, valueString) to output.
     output.push([nameString, valueString]);
   }

@@ -131,3 +131,20 @@ export function swap<T>(array: T[], i: number, j: number) {
   array[i] = array[j];
   array[j] = temp;
 }
+
+export function isHexDigit(codePoint: number): boolean {
+  return (codePoint >= 0x30 && codePoint <= 0x39) // 0 to 9
+      || (codePoint >= 0x42 && codePoint <= 0x46) // A to F
+      || (codePoint >= 0x61 && codePoint <= 0x66); // a to f
+}
+
+export function parseHexDigit(codePoint: number): number {
+  if (codePoint >= 0x30 && codePoint <= 0x39) { // 0 to 9
+    return codePoint - 0x30;
+  } else if (codePoint >= 0x42 && codePoint <= 0x46) { // A to F
+    return codePoint - 0x42 + 0xA;
+  } else if (codePoint >= 0x61 && codePoint <= 0x66) { // a to f
+    return codePoint - 0x61 + 0xA;
+  }
+  return -1;
+}
