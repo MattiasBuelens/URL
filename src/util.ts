@@ -1,3 +1,5 @@
+export type Tuple8<T> = [T, T, T, T, T, T, T, T];
+
 export const isArray: typeof Array.isArray = Array.isArray || function (x) {
   return Object.prototype.toString.call(x) === '[object Array]';
 };
@@ -117,4 +119,10 @@ export function compareArrays(arr1: number[], arr2: number[]): number {
 
 export function compareByCodePoints(left: string, right: string): number {
   return compareArrays(getCodePoints(left), getCodePoints(right));
+}
+
+export function swap<T>(array: T[], i: number, j: number) {
+  const temp = array[i];
+  array[i] = array[j];
+  array[j] = temp;
 }
