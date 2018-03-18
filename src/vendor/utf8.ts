@@ -3,12 +3,12 @@
 var stringFromCharCode = String.fromCharCode;
 
 // Taken from https://mths.be/punycode
-function ucs2decode(string) {
-  var output = [];
+function ucs2decode(string: string): number[] {
+  var output: number[] = [];
   var counter = 0;
   var length = string.length;
-  var value;
-  var extra;
+  var value: number;
+  var extra: number;
   while (counter < length) {
     value = string.charCodeAt(counter++);
     if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
@@ -30,10 +30,10 @@ function ucs2decode(string) {
 }
 
 // Taken from https://mths.be/punycode
-function ucs2encode(array) {
+function ucs2encode(array: number[]): string {
   var length = array.length;
   var index = -1;
-  var value;
+  var value: number;
   var output = '';
   while (++index < length) {
     value = array[index];
@@ -47,7 +47,7 @@ function ucs2encode(array) {
   return output;
 }
 
-function checkScalarValue(codePoint) {
+function checkScalarValue(codePoint: number) {
   if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
     throw Error(
         'Lone surrogate U+' + codePoint.toString(16).toUpperCase() +
@@ -58,11 +58,11 @@ function checkScalarValue(codePoint) {
 
 /*--------------------------------------------------------------------------*/
 
-function createByte(codePoint, shift) {
+function createByte(codePoint: number, shift: number) {
   return stringFromCharCode(((codePoint >> shift) & 0x3F) | 0x80);
 }
 
-function encodeCodePoint(codePoint) {
+function encodeCodePoint(codePoint: number): string {
   if ((codePoint & 0xFFFFFF80) == 0) { // 1-byte sequence
     return stringFromCharCode(codePoint);
   }
@@ -84,11 +84,11 @@ function encodeCodePoint(codePoint) {
   return symbol;
 }
 
-function utf8encode(string) {
+function utf8encode(string: string): string {
   var codePoints = ucs2decode(string);
   var length = codePoints.length;
   var index = -1;
-  var codePoint;
+  var codePoint: number;
   var byteString = '';
   while (++index < length) {
     codePoint = codePoints[index];
@@ -99,7 +99,7 @@ function utf8encode(string) {
 
 /*--------------------------------------------------------------------------*/
 
-function readContinuationByte() {
+function readContinuationByte(): number {
   if (byteIndex >= byteCount) {
     throw Error('Invalid byte index');
   }
@@ -115,12 +115,12 @@ function readContinuationByte() {
   throw Error('Invalid continuation byte');
 }
 
-function decodeSymbol() {
-  var byte1;
-  var byte2;
-  var byte3;
-  var byte4;
-  var codePoint;
+function decodeSymbol(): number | false {
+  var byte1: number;
+  var byte2: number;
+  var byte3: number;
+  var byte4: number;
+  var codePoint: number;
 
   if (byteIndex > byteCount) {
     throw Error('Invalid byte index');
@@ -178,16 +178,16 @@ function decodeSymbol() {
   throw Error('Invalid UTF-8 detected');
 }
 
-var byteArray;
-var byteCount;
-var byteIndex;
+var byteArray: number[];
+var byteCount: number;
+var byteIndex: number;
 
-function utf8decode(byteString) {
+function utf8decode(byteString: string): string {
   byteArray = ucs2decode(byteString);
   byteCount = byteArray.length;
   byteIndex = 0;
-  var codePoints = [];
-  var tmp;
+  var codePoints: number[] = [];
+  var tmp: number | false;
   while ((tmp = decodeSymbol()) !== false) {
     codePoints.push(tmp);
   }
