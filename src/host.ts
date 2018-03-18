@@ -312,5 +312,5 @@ function findFirstLongestZeroSequence(address: IPv6Address): number | null {
     longestStart = currentStart;
     longestLength = currentLength;
   }
-  return (longestLength > 0) ? longestStart : null;
+  return (longestLength > 1) ? longestStart : null;
 }
