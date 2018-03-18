@@ -1,5 +1,5 @@
 import { isHexDigit, parseHexDigit } from "./util";
-import { ucs2decode, ucs2encode, utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
+import { ucs2decode, ucs2encode, utf8decoderaw, utf8encode, utf8encoderaw } from "./vendor/utf8";
 
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -160,18 +160,18 @@ export function parseUrlEncoded(input: string): Array<[string, string]> {
 export function serializeUrlEncoded(tuples: ReadonlyArray<[string, string]>): string {
   // 1. Let encoding be UTF-8.
   // 2. If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
-  // TODO encoding?
+  // Note: we only support UTF-8
   // 3. Let output be the empty string.
   let output = '';
   // 4. For each tuple in tuples:
   for (let index = 0; index < tuples.length; index++) {
     const tuple = tuples[index];
     // 1. Let name be the result of serializing the result of encoding tuple’s name, using encoding.
-    const name = serializeUrlEncodedBytes(tuple[0]);
+    const name = serializeUrlEncodedBytes(utf8encode(tuple[0]));
     // 2. Let value be tuple’s value.
     // 3. (skipped, we're not parsing HTML)
     // 4. Set value to the result of serializing the result of encoding value, using encoding.
-    const value = serializeUrlEncodedBytes(tuple[1]);
+    const value = serializeUrlEncodedBytes(utf8encode(tuple[1]));
     // 5. If tuple is not the first pair in tuples, then append U+0026 (&) to output.
     if (index > 0) {
       output += '&';
