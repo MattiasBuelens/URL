@@ -49,7 +49,7 @@ function ucs2encode(array: number[]): string {
 
 function checkScalarValue(codePoint: number) {
   if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
-    throw Error(
+    throw new Error(
         'Lone surrogate U+' + codePoint.toString(16).toUpperCase() +
         ' is not a scalar value'
     );
@@ -108,7 +108,7 @@ function utf8encode(string: string): string {
 
 function readContinuationByte(): number {
   if (byteIndex >= byteCount) {
-    throw Error('Invalid byte index');
+    throw new Error('Invalid byte index');
   }
 
   var continuationByte = byteArray[byteIndex] & 0xFF;
@@ -119,7 +119,7 @@ function readContinuationByte(): number {
   }
 
   // If we end up here, it’s not a continuation byte
-  throw Error('Invalid continuation byte');
+  throw new Error('Invalid continuation byte');
 }
 
 function decodeSymbol(): number | false {
@@ -130,7 +130,7 @@ function decodeSymbol(): number | false {
   var codePoint: number;
 
   if (byteIndex > byteCount) {
-    throw Error('Invalid byte index');
+    throw new Error('Invalid byte index');
   }
 
   if (byteIndex == byteCount) {
@@ -153,7 +153,7 @@ function decodeSymbol(): number | false {
     if (codePoint >= 0x80) {
       return codePoint;
     } else {
-      throw Error('Invalid continuation byte');
+      throw new Error('Invalid continuation byte');
     }
   }
 
@@ -166,7 +166,7 @@ function decodeSymbol(): number | false {
       checkScalarValue(codePoint);
       return codePoint;
     } else {
-      throw Error('Invalid continuation byte');
+      throw new Error('Invalid continuation byte');
     }
   }
 
@@ -182,7 +182,7 @@ function decodeSymbol(): number | false {
     }
   }
 
-  throw Error('Invalid UTF-8 detected');
+  throw new Error('Invalid UTF-8 detected');
 }
 
 var byteArray: number[];

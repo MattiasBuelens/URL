@@ -82,7 +82,7 @@ export const fromCodePoints: (codePoints: number[]) => string
             codePoint > 0x10FFFF || // not a valid Unicode code point
             Math.floor(codePoint) !== codePoint // not an integer
         ) {
-          throw RangeError(`Invalid code point: ${codePoint}`);
+          throw new RangeError(`Invalid code point: ${codePoint}`);
         }
         if (codePoint <= 0xFFFF) { // BMP code point
           codeUnits.push(codePoint);
