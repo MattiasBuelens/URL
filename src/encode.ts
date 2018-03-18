@@ -1,15 +1,12 @@
-import { fromCodePoints, getCodePointAt, getCodePoints } from "./util";
-import { utf8encode } from "./vendor/utf8";
+import { fromCodePoints, getCodePoints } from "./util";
+import { utf8encoderaw } from "./vendor/utf8";
 
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
 
-export function percentEncode(c: string): string {
-  return encodeURIComponent(c);
-}
-
-export function percentDecode(c: string): string {
-  return decodeURIComponent(c);
+// https://url.spec.whatwg.org/#percent-encode
+export function percentEncode(byte: number): string {
+  return `%${byte <= 0xF ? '0' : ''}${byte.toString(16).toUpperCase()}`;
 }
 
 // https://infra.spec.whatwg.org/#c0-control
@@ -66,24 +63,28 @@ export function isQueryPercentEncode(code: number): boolean {
 }
 
 // https://url.spec.whatwg.org/#utf-8-percent-encode
-export function utf8PercentEncode(c: string, percentEncodeSet: (code: number) => boolean): string {
+export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: number) => boolean): string {
   // 1. If codePoint is not in percentEncodeSet, then return codePoint.
-  const code = getCodePointAt(c, 0)!;
-  if (!percentEncodeSet(code)) {
-    return c;
+  if (!percentEncodeSet(codePoint)) {
+    return fromCodePoints([codePoint]);
   }
   // 2. Let bytes be the result of running UTF-8 encode on codePoint.
-  const bytes = utf8encode(c);
+  const bytes = utf8encoderaw([codePoint]);
   // 3. Percent encode each byte in bytes, and then return the results concatenated, in the same order.
-  return percentEncode(bytes);
+  return bytes.map(percentEncode).join('');
 }
 
 export function utf8PercentEncodeString(c: string, percentEncodeSet: (code: number) => boolean): string {
   let output = '';
   for (let codePoint of getCodePoints(c)) {
-    output += utf8PercentEncode(fromCodePoints([codePoint]), percentEncodeSet);
+    output += utf8PercentEncode(codePoint, percentEncodeSet);
   }
   return output;
+}
+
+export function stringPercentDecode(input: string): string {
+  // TODO Correct?
+  return decodeURIComponent(input);
 }
 
 // https://url.spec.whatwg.org/#urlencoded-parsing
@@ -118,8 +119,8 @@ export function parseUrlEncoded(input: string): Array<[string, string]> {
     value = value.replace(PLUS, ' ');
     // 5. Let nameString and valueString be the result of running UTF-8 decode without BOM
     //    on the percent decoding of name and value, respectively.
-    const nameString = percentDecode(name);
-    const valueString = percentDecode(value);
+    const nameString = stringPercentDecode(name);
+    const valueString = stringPercentDecode(value);
     // 6. Append (nameString, valueString) to output.
     output.push([nameString, valueString]);
   }
@@ -171,7 +172,7 @@ function serializeUrlEncodedBytes(input: string): string {
     }
     else {
       // Append byte, percent encoded, to output.
-      output += percentEncode(byte);
+      output += percentEncode(byte.charCodeAt(0));
     }
   }
   // 3. Return output.

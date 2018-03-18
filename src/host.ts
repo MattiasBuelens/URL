@@ -1,4 +1,4 @@
-import { isC0ControlPercentEncode, utf8PercentEncode } from "./encode";
+import { isC0ControlPercentEncode, utf8PercentEncodeString } from "./encode";
 import { DIGIT, HEX_DIGIT, swap, Tuple8 } from "./util";
 
 export const enum HostType {
@@ -53,12 +53,9 @@ export function parseHost(input: string, isSpecial: boolean): Host {
 function parseOpaqueHost(input: string): OpaqueHost {
   // TODO 1. If input contains a forbidden host code point excluding U+0025 (%), validation error, return failure.
   // 2. Let output be the empty string.
-  let output = '';
   // 3. For each code point in input, UTF-8 percent encode it using the C0 control percent-encode set,
   // and append the result to output.
-  for (let i = 0; i < input.length; i++) {
-    output += utf8PercentEncode(input[i], isC0ControlPercentEncode);
-  }
+  const output = utf8PercentEncodeString(input, isC0ControlPercentEncode);
   // 4. Return output.
   return {
     _type: HostType.OPAQUE,
