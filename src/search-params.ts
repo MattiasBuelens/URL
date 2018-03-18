@@ -1,6 +1,6 @@
 import { jURL, setUrlQuery } from "./url";
 import { compareByCodePoints, isSequence, sequenceToArray } from "./util";
-import { parseUrlEncoded, serializeUrlEncoded } from "./encode";
+import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 
 export type URLSearchParamsInit = Array<[string, string]> | { [name: string]: string } | string;
 
