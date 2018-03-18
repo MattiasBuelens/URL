@@ -7,13 +7,11 @@ function ucs2decode(string: string): number[] {
   const output: number[] = [];
   let counter = 0;
   const length = string.length;
-  let value: number;
-  let extra: number;
   while (counter < length) {
-    value = string.charCodeAt(counter++);
+    const value = string.charCodeAt(counter++);
     if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
       // high surrogate, and there is a next character
-      extra = string.charCodeAt(counter++);
+      const extra = string.charCodeAt(counter++);
       if ((extra & 0xFC00) == 0xDC00) { // low surrogate
         output.push(((value & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000);
       } else {
@@ -31,12 +29,8 @@ function ucs2decode(string: string): number[] {
 
 // Taken from https://mths.be/punycode
 function ucs2encode(array: number[]): string {
-  const length = array.length;
-  let index = -1;
-  let value: number;
   let output = '';
-  while (++index < length) {
-    value = array[index];
+  for (let value of array) {
     if (value > 0xFFFF) {
       value -= 0x10000;
       output += stringFromCharCode(value >>> 10 & 0x3FF | 0xD800);
@@ -84,12 +78,8 @@ function encodeCodePoint(codePoint: number, output: number[]) {
 }
 
 function utf8encoderaw(codePoints: number[]): number[] {
-  const length = codePoints.length;
-  let index = -1;
-  let codePoint: number;
   const bytes: number[] = [];
-  while (++index < length) {
-    codePoint = codePoints[index];
+  for (let codePoint of codePoints) {
     encodeCodePoint(codePoint, bytes);
   }
   return bytes;
