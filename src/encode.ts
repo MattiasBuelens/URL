@@ -1,5 +1,5 @@
-import { fromCodePoints, getCodePoints, isHexDigit, parseHexDigit } from "./util";
-import { utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
+import { isHexDigit, parseHexDigit } from "./util";
+import { ucs2decode, ucs2encode, utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
 
 const PLUS = /\+/g;
 const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -95,7 +95,7 @@ export function isQueryPercentEncode(code: number): boolean {
 export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: number) => boolean): string {
   // 1. If codePoint is not in percentEncodeSet, then return codePoint.
   if (!percentEncodeSet(codePoint)) {
-    return fromCodePoints([codePoint]);
+    return ucs2encode([codePoint]);
   }
   // 2. Let bytes be the result of running UTF-8 encode on codePoint.
   const bytes = utf8encoderaw([codePoint]);
@@ -105,14 +105,14 @@ export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: nu
 
 export function utf8PercentEncodeString(c: string, percentEncodeSet: (code: number) => boolean): string {
   let output = '';
-  for (let codePoint of getCodePoints(c)) {
+  for (let codePoint of ucs2decode(c)) {
     output += utf8PercentEncode(codePoint, percentEncodeSet);
   }
   return output;
 }
 
 export function utf8PercentDecodeString(input: string): string {
-  return fromCodePoints(utf8decoderaw(percentDecode(getCodePoints(input))));
+  return ucs2encode(utf8decoderaw(percentDecode(ucs2decode(input))));
 }
 
 // https://url.spec.whatwg.org/#urlencoded-parsing

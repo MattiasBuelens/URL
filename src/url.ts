@@ -12,7 +12,8 @@ import {
 } from "./encode";
 import { Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
-import { ALPHA, ALPHANUMERIC, DIGIT, getCodePoints, HEX_DIGIT } from "./util";
+import { ALPHA, ALPHANUMERIC, DIGIT, HEX_DIGIT } from "./util";
+import { ucs2decode } from "./vendor/utf8";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -489,7 +490,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 3. Set the @ flag.
           seenAt = true;
           // 4. For each codePoint in buffer:
-          for (let codePoint of getCodePoints(buffer)) {
+          for (let codePoint of ucs2decode(buffer)) {
             // 1. If codePoint is U+003A (:) and passwordTokenSeenFlag is unset,
             //    then set passwordTokenSeenFlag and continue.
             if (0x3A === codePoint && !passwordTokenSeenFlag) {

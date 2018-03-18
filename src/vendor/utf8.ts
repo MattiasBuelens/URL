@@ -212,5 +212,7 @@ export {
   utf8encode,
   utf8encoderaw,
   utf8decode,
-  utf8decoderaw
+  utf8decoderaw,
+  ucs2encode,
+  ucs2decode
 };
