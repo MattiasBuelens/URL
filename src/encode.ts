@@ -116,6 +116,6 @@ export function stringPercentDecode(codePoints: number[]): number[] {
   return percentDecode(bytes);
 }
 
-export function utf8PercentDecodeString(input: string): string {
+export function utf8StringPercentDecode(input: string): string {
   return ucs2encode(utf8decoderaw(stringPercentDecode(ucs2decode(input))));
 }

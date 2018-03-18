@@ -1,4 +1,4 @@
-import { isC0ControlPercentEncode, utf8PercentDecodeString, utf8PercentEncodeString } from "./encode";
+import { isC0ControlPercentEncode, utf8PercentEncodeString, utf8StringPercentDecode } from "./encode";
 import { IPv6Address, parseIPv6, serializeIPv6 } from "./host/ipv6";
 import { IPv4Address, parseIPv4, serializeIPv4 } from "./host/ipv4";
 
@@ -49,7 +49,7 @@ export function parseHost(input: string, isSpecial: boolean): Host {
     return parseOpaqueHost(input);
   }
   // 3. Let domain be the result of running UTF-8 decode without BOM on the string percent decoding of input.
-  const domain = utf8PercentDecodeString(input);
+  const domain = utf8StringPercentDecode(input);
   // 4. Let asciiDomain be the result of running domain to ASCII on domain.
   // 5. If asciiDomain is failure, validation error, return failure.
   // 6. If asciiDomain contains a forbidden host code point, validation error, return failure.

@@ -1,5 +1,5 @@
 import { utf8encode } from "./vendor/utf8";
-import { percentEncode, utf8PercentDecodeString } from "./encode";
+import { percentEncode, utf8StringPercentDecode } from "./encode";
 
 export const PLUS = /\+/g;
 export const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -35,8 +35,8 @@ export function parseUrlEncoded(input: string): Array<[string, string]> {
     value = value.replace(PLUS, ' ');
     // 5. Let nameString and valueString be the result of running UTF-8 decode without BOM
     //    on the percent decoding of name and value, respectively.
-    const nameString = utf8PercentDecodeString(name);
-    const valueString = utf8PercentDecodeString(value);
+    const nameString = utf8StringPercentDecode(name);
+    const valueString = utf8StringPercentDecode(value);
     // 6. Append (nameString, valueString) to output.
     output.push([nameString, valueString]);
   }
