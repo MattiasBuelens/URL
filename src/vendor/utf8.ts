@@ -50,11 +50,12 @@ function ucs2encode(array) {
 function checkScalarValue(codePoint) {
   if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
     throw Error(
-      'Lone surrogate U+' + codePoint.toString(16).toUpperCase() +
-      ' is not a scalar value'
+        'Lone surrogate U+' + codePoint.toString(16).toUpperCase() +
+        ' is not a scalar value'
     );
   }
 }
+
 /*--------------------------------------------------------------------------*/
 
 function createByte(codePoint, shift) {
@@ -168,7 +169,7 @@ function decodeSymbol() {
     byte3 = readContinuationByte();
     byte4 = readContinuationByte();
     codePoint = ((byte1 & 0x07) << 0x12) | (byte2 << 0x0C) |
-      (byte3 << 0x06) | byte4;
+        (byte3 << 0x06) | byte4;
     if (codePoint >= 0x010000 && codePoint <= 0x10FFFF) {
       return codePoint;
     }
@@ -180,6 +181,7 @@ function decodeSymbol() {
 var byteArray;
 var byteCount;
 var byteIndex;
+
 function utf8decode(byteString) {
   byteArray = ucs2decode(byteString);
   byteCount = byteArray.length;
@@ -195,5 +197,5 @@ function utf8decode(byteString) {
 /*--------------------------------------------------------------------------*/
 
 export const version = '3.0.0';
-export {utf8encode as encode}
-export {utf8decode as decode}
+export { utf8encode as encode };
+export { utf8decode as decode };
