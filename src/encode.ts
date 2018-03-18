@@ -108,6 +108,14 @@ export function utf8PercentEncodeString(input: string, percentEncodeSet: (code: 
   return output.join('');
 }
 
+// https://url.spec.whatwg.org/#string-percent-decode
+export function stringPercentDecode(codePoints: number[]): number[] {
+  // 1. Let bytes be the UTF-8 encoding of input.
+  const bytes = utf8encoderaw(codePoints);
+  // 2. Return the percent decoding of bytes.
+  return percentDecode(bytes);
+}
+
 export function utf8PercentDecodeString(input: string): string {
-  return ucs2encode(utf8decoderaw(percentDecode(ucs2decode(input))));
+  return ucs2encode(utf8decoderaw(stringPercentDecode(ucs2decode(input))));
 }
