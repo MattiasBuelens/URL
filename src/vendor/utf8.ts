@@ -96,6 +96,10 @@ function utf8encode(string: string): string {
 
 /*--------------------------------------------------------------------------*/
 
+let byteArray: number[];
+let byteCount: number;
+let byteIndex: number;
+
 function readContinuationByte(): number {
   if (byteIndex >= byteCount) {
     throw new Error('Invalid byte index');
@@ -174,10 +178,6 @@ function decodeSymbol(): number | false {
 
   throw new Error('Invalid UTF-8 detected');
 }
-
-let byteArray: number[];
-let byteCount: number;
-let byteIndex: number;
 
 function utf8decoderaw(bytes: number[]): number[] {
   byteArray = bytes.slice();
