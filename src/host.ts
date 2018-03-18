@@ -1,15 +1,22 @@
-import { isC0ControlPercentEncode, utf8PercentEncodeString } from "./encode";
+import { isC0ControlPercentEncode, utf8PercentDecodeString, utf8PercentEncodeString } from "./encode";
 import { IPv6Address, parseIPv6, serializeIPv6 } from "./host/ipv6";
+import { IPv4Address, parseIPv4, serializeIPv4 } from "./host/ipv4";
 
 export const enum HostType {
-  DOMAIN_OR_IPV4,
+  DOMAIN,
+  IPV4,
   IPV6,
   OPAQUE
 }
 
-export interface DomainOrIPV4Host {
-  _type: HostType.DOMAIN_OR_IPV4;
-  _domainOrAddress: string;
+export interface DomainHost {
+  _type: HostType.DOMAIN;
+  _domain: string;
+}
+
+export interface IPv4Host {
+  _type: HostType.IPV4;
+  _address: IPv4Address;
 }
 
 export interface IPv6Host {
@@ -22,7 +29,7 @@ export interface OpaqueHost {
   _data: string;
 }
 
-export type Host = DomainOrIPV4Host | IPv6Host | OpaqueHost | '';
+export type Host = DomainHost | IPv4Host | IPv6Host | OpaqueHost | '';
 
 export function parseHost(input: string, isSpecial: boolean): Host {
   // 1. If input starts with U+005B ([), then:
@@ -41,10 +48,26 @@ export function parseHost(input: string, isSpecial: boolean): Host {
   if (!isSpecial) {
     return parseOpaqueHost(input);
   }
-  // TODO steps 3 to 9
+  // 3. Let domain be the result of running UTF-8 decode without BOM on the string percent decoding of input.
+  const domain = utf8PercentDecodeString(input);
+  // 4. Let asciiDomain be the result of running domain to ASCII on domain.
+  // 5. If asciiDomain is failure, validation error, return failure.
+  // 6. If asciiDomain contains a forbidden host code point, validation error, return failure.
+  // TODO steps 4 to 6
+  const asciiDomain = domain;
+  // 7. Let ipv4Host be the result of IPv4 parsing asciiDomain.
+  const ipv4Host = parseIPv4(asciiDomain);
+  // 8. If ipv4Host is an IPv4 address or failure, return ipv4Host.
+  if (ipv4Host !== undefined) {
+    return {
+      _type: HostType.IPV4,
+      _address: ipv4Host
+    };
+  }
+  // 9. Return asciiDomain.
   return {
-    _type: HostType.DOMAIN_OR_IPV4,
-    _domainOrAddress: input
+    _type: HostType.DOMAIN,
+    _domain: asciiDomain
   };
 }
 
@@ -66,8 +89,10 @@ export function serializeHost(host: Host): string {
     return host;
   }
   switch (host._type) {
-    case HostType.DOMAIN_OR_IPV4:
-      return host._domainOrAddress;
+    case HostType.DOMAIN:
+      return host._domain;
+    case HostType.IPV4:
+      return serializeIPv4(host._address);
     case HostType.IPV6:
       // TODO Compress IPv6
       return `[${serializeIPv6(host._address)}]`;

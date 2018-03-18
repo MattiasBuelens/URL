@@ -5,6 +5,11 @@ export const DIGIT = /[0-9]/;
 export const HEX_DIGIT = /[0-9a-fA-F]/;
 export const ALPHANUMERIC = /[a-zA-Z0-9+\-.]/;
 
+export const HEX_PREFIX = /^0x/i;
+export const ONLY_DEC = /^[0-9]+$/;
+export const ONLY_HEX = /^[0-9a-fA-F]+$/;
+export const ONLY_OCT = /^[0-7]+$/;
+
 export type Tuple8<T> = [T, T, T, T, T, T, T, T];
 
 export const isArray: typeof Array.isArray = Array.isArray || function (x) {
