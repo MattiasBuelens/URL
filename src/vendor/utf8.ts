@@ -1,14 +1,14 @@
 /*! https://mths.be/utf8js v3.0.0 by @mathias */
 
-var stringFromCharCode = String.fromCharCode;
+const stringFromCharCode = String.fromCharCode;
 
 // Taken from https://mths.be/punycode
 function ucs2decode(string: string): number[] {
-  var output: number[] = [];
-  var counter = 0;
-  var length = string.length;
-  var value: number;
-  var extra: number;
+  const output: number[] = [];
+  let counter = 0;
+  const length = string.length;
+  let value: number;
+  let extra: number;
   while (counter < length) {
     value = string.charCodeAt(counter++);
     if (value >= 0xD800 && value <= 0xDBFF && counter < length) {
@@ -31,10 +31,10 @@ function ucs2decode(string: string): number[] {
 
 // Taken from https://mths.be/punycode
 function ucs2encode(array: number[]): string {
-  var length = array.length;
-  var index = -1;
-  var value: number;
-  var output = '';
+  const length = array.length;
+  let index = -1;
+  let value: number;
+  let output = '';
   while (++index < length) {
     value = array[index];
     if (value > 0xFFFF) {
@@ -84,10 +84,10 @@ function encodeCodePoint(codePoint: number, output: number[]) {
 }
 
 function utf8encoderaw(codePoints: number[]): number[] {
-  var length = codePoints.length;
-  var index = -1;
-  var codePoint: number;
-  var bytes: number[] = [];
+  const length = codePoints.length;
+  let index = -1;
+  let codePoint: number;
+  const bytes: number[] = [];
   while (++index < length) {
     codePoint = codePoints[index];
     encodeCodePoint(codePoint, bytes);
@@ -96,8 +96,8 @@ function utf8encoderaw(codePoints: number[]): number[] {
 }
 
 function utf8encode(string: string): string {
-  var bytes = utf8encoderaw(ucs2decode(string));
-  var byteString = '';
+  const bytes = utf8encoderaw(ucs2decode(string));
+  let byteString = '';
   for (let byte of bytes) {
     byteString += stringFromCharCode(byte);
   }
@@ -111,7 +111,7 @@ function readContinuationByte(): number {
     throw new Error('Invalid byte index');
   }
 
-  var continuationByte = byteArray[byteIndex] & 0xFF;
+  const continuationByte = byteArray[byteIndex] & 0xFF;
   byteIndex++;
 
   if ((continuationByte & 0xC0) == 0x80) {
@@ -123,11 +123,11 @@ function readContinuationByte(): number {
 }
 
 function decodeSymbol(): number | false {
-  var byte1: number;
-  var byte2: number;
-  var byte3: number;
-  var byte4: number;
-  var codePoint: number;
+  let byte1: number;
+  let byte2: number;
+  let byte3: number;
+  let byte4: number;
+  let codePoint: number;
 
   if (byteIndex > byteCount) {
     throw new Error('Invalid byte index');
@@ -185,16 +185,16 @@ function decodeSymbol(): number | false {
   throw new Error('Invalid UTF-8 detected');
 }
 
-var byteArray: number[];
-var byteCount: number;
-var byteIndex: number;
+let byteArray: number[];
+let byteCount: number;
+let byteIndex: number;
 
 function utf8decoderaw(bytes: number[]): number[] {
   byteArray = bytes.slice();
   byteCount = byteArray.length;
   byteIndex = 0;
-  var codePoints: number[] = [];
-  var tmp: number | false;
+  const codePoints: number[] = [];
+  let tmp: number | false;
   while ((tmp = decodeSymbol()) !== false) {
     codePoints.push(tmp);
   }
