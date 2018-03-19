@@ -10,7 +10,7 @@ import {
   utf8PercentEncode,
   utf8PercentEncodeString
 } from "./encode";
-import { Host, HostType, parseHost, serializeHost } from "./host";
+import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 import { ALPHA, ALPHANUMERIC, DIGIT, HEX_DIGIT } from "./util";
 import { ucs2decode } from "./vendor/utf8";
@@ -94,7 +94,7 @@ function shortenPath(url: UrlRecord) {
 }
 
 function cannotHaveUsernamePasswordPort(url: UrlRecord): boolean {
-  return (null === url._host || '' === url._host) ||
+  return (null === url._host || EMPTY_HOST === url._host) ||
       url._cannotBeABaseURL ||
       'file' === url._scheme;
 }
@@ -216,7 +216,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               return;
             }
             // 4. If url’s scheme is "file" and its host is an empty host or null, then return.
-            if (url._scheme === 'file' && (url._host === '' || url._host === null)) {
+            if (url._scheme === 'file' && (url._host === EMPTY_HOST || url._host === null)) {
               return;
             }
           }
@@ -776,7 +776,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 2. Otherwise, if buffer is the empty string, then:
           else if (buffer === '') {
             // 1. Set url’s host to the empty string.
-            url._host = '';
+            url._host = EMPTY_HOST;
             // 2. If state override is given, then return.
             if (stateOverride !== null) {
               return;
@@ -793,8 +793,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               throw new TypeError('Invalid host');
             }
             // 3. If host is "localhost", then set host to the empty string.
-            if ('' !== host && host._type === HostType.DOMAIN && 'localhost' === host._domain) {
-              host = '';
+            if (host._type === HostType.DOMAIN && 'localhost' === host._domain) {
+              host = EMPTY_HOST;
             }
             // 4. Set url’s host to host.
             url._host = host;
@@ -889,9 +889,9 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetter(buffer)) {
               // 1. If url’s host is neither the empty string nor null,
               //    validation error, set url’s host to the empty string.
-              if ('' !== url._host && null !== url._host) {
+              if (EMPTY_HOST !== url._host && null !== url._host) {
                 err(''); // TODO
-                url._host = '';
+                url._host = EMPTY_HOST;
               }
               // 2. Replace the second code point in buffer with U+003A (:).
               // (Note that isWindowsDriveLetter(buffer) implies buffer.length === 2)

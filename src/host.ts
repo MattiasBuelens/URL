@@ -7,7 +7,8 @@ export const enum HostType {
   DOMAIN,
   IPV4,
   IPV6,
-  OPAQUE
+  OPAQUE,
+  EMPTY
 }
 
 export interface DomainHost {
@@ -30,7 +31,13 @@ export interface OpaqueHost {
   _data: string;
 }
 
-export type EmptyHost = '';
+export type EmptyHost = {
+  _type: HostType.EMPTY
+};
+
+export const EMPTY_HOST: EmptyHost = {
+  _type: HostType.EMPTY
+};
 
 export type Host = DomainHost | IPv4Host | IPv6Host | OpaqueHost | EmptyHost;
 
@@ -75,7 +82,7 @@ export function parseHost(input: string, isSpecial: boolean): Host {
     };
   }
   // 9. Return asciiDomain.
-  return asciiDomain === '' ? '' : {
+  return asciiDomain === '' ? EMPTY_HOST : {
     _type: HostType.DOMAIN,
     _domain: asciiDomain
   };
@@ -109,16 +116,13 @@ function parseOpaqueHost(input: string): OpaqueHost | EmptyHost {
   // and append the result to output.
   const output = utf8PercentEncodeString(input, isC0ControlPercentEncode);
   // 4. Return output.
-  return output === '' ? '' : {
+  return output === '' ? EMPTY_HOST : {
     _type: HostType.OPAQUE,
     _data: output
   };
 }
 
 export function serializeHost(host: Host): string {
-  if ('' === host) {
-    return host;
-  }
   switch (host._type) {
     case HostType.DOMAIN:
       return host._domain;
@@ -128,5 +132,7 @@ export function serializeHost(host: Host): string {
       return `[${serializeIPv6(host._address)}]`;
     case HostType.OPAQUE:
       return host._data;
+    case HostType.EMPTY:
+      return '';
   }
 }
