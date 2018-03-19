@@ -1,7 +1,7 @@
 import { isC0ControlPercentEncode, utf8PercentEncodeString, utf8StringPercentDecode } from "./encode";
 import { IPv6Address, parseIPv6, serializeIPv6 } from "./host/ipv6";
 import { IPv4Address, parseIPv4, serializeIPv4 } from "./host/ipv4";
-import punycode from "punycode";
+import idna from "idna-uts46";
 
 export const enum HostType {
   DOMAIN,
@@ -80,14 +80,18 @@ export function parseHost(input: string, isSpecial: boolean): Host {
 
 function domainToAscii(domain: string): string {
   // 1. If beStrict is not given, set it to false.
-  // Note: only non-strict is implemented
+  const beStrict = false;
   // 2. Let result be the result of running Unicode ToASCII with domain_name set to domain,
   //    UseSTD3ASCIIRules set to beStrict, CheckHyphens set to false, CheckBidi set to true,
   //    CheckJoiners set to true, processing_option set to Nontransitional_Processing,
   //    and VerifyDnsLength set to beStrict.
   // 3. If result is a failure value, validation error, return failure.
-  // TODO Unicode ToASCII, step 1: apply the Processing Steps
-  const result = punycode.toASCII(domain);
+  // TODO This adds a *lot* of code... Make 'light' version?
+  const result = idna.toAscii(domain, {
+    transitional: false,
+    useStd3ASCII: beStrict,
+    verifyDnsLength: beStrict
+  });
   // 4. Return result.
   return result;
 }

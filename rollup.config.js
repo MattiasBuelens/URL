@@ -1,4 +1,5 @@
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
+const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript = require('rollup-plugin-typescript');
 
 module.exports = {
@@ -13,6 +14,9 @@ module.exports = {
     rollupNodeResolve({
       jsnext: true,
       preferBuiltins: false // do not use punycode from Node
+    }),
+    rollupCommonJS({
+      include: 'node_modules/**'
     }),
     rollupTypescript({
       typescript: require('typescript')
