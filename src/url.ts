@@ -14,6 +14,7 @@ import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 import { ALPHA, ALPHANUMERIC, DIGIT, HEX_DIGIT } from "./util";
 import { ucs2decode } from "./vendor/utf8";
+import { createOpaqueOrigin, createTupleOrigin, OPAQUE_ORIGIN, Origin, serializeOrigin } from "./origin";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -1102,6 +1103,37 @@ export class UrlRecord {
   _cannotBeABaseURL: boolean = false;
 }
 
+// https://url.spec.whatwg.org/#concept-url-origin
+function getOrigin(url: UrlRecord): Origin {
+  switch (url._scheme) {
+    case 'blob': {
+      // Let url be the result of parsing URL’s path[0].
+      // Return a new opaque origin, if url is failure, and url’s origin otherwise.
+      let blobUrl: UrlRecord;
+      try {
+        blobUrl = parse(url._path[0], null);
+      } catch (e) {
+        return createOpaqueOrigin();
+      }
+      return getOrigin(blobUrl);
+    }
+    case 'ftp':
+    case 'gopher':
+    case 'http':
+    case 'https':
+    case 'ws':
+    case 'wss':
+      // Return a tuple consisting of URL’s scheme, URL’s host, URL’s port, and null.
+      return createTupleOrigin(url._scheme, url._host, url._port, null);
+    case 'file':
+      // Unfortunate as it is, this is left as an exercise to the reader. When in doubt, return a new opaque origin.
+      return createOpaqueOrigin();
+    default:
+      // Return a new opaque origin.
+      return createOpaqueOrigin();
+  }
+}
+
 // region URLSearchParams internals
 
 export interface URLInternals {
@@ -1185,28 +1217,7 @@ class URL {
   }
 
   get origin(): string {
-    // TODO Make spec-compliant
-    const scheme = this._url._scheme;
-    if (!scheme) {
-      return '';
-    }
-    // javascript: Gecko returns String(""), WebKit/Blink String("null")
-    // Gecko throws error for "data://"
-    // data: Gecko returns "", Blink returns "data://", WebKit returns "null"
-    // Gecko returns String("") for file: mailto:
-    // WebKit/Blink returns String("SCHEME://") for file: mailto:
-    switch (scheme) {
-      case 'data':
-      case 'file':
-      case 'javascript':
-      case 'mailto':
-        return 'null';
-    }
-    const host = this.host;
-    if (!host) {
-      return '';
-    }
-    return `${this._url._scheme}://${host}`;
+    return serializeOrigin(getOrigin(this._url));
   }
 
   get protocol(): string {
