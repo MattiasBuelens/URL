@@ -3,10 +3,15 @@ const path = require('path');
 const wptRunner = require('wpt-runner');
 const minimatch = require('minimatch');
 
-const { URL } = require('./dist/url.js');
+const { URL, URLSearchParams } = require('./dist/url.js');
 
 const testsPath = path.resolve(__dirname, 'web-platform-tests/url');
-const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['url-constructor.html'];
+const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
+    'url-constructor.html',
+    'url-origin.html',
+    'url-setters.html',
+    'url-tojson.html'
+];
 
 function filter(testPath) {
   return filterGlobs.some(glob => minimatch(testPath, glob));
@@ -23,4 +28,5 @@ wptRunner(testsPath, { rootURL: 'url/', setup, filter })
 
 function setup(window) {
   window.URL = URL;
+  window.URLSearchParams = URLSearchParams;
 }

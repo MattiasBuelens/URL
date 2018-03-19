@@ -1,4 +1,5 @@
 import { jURL } from "./url";
+import { URLSearchParams as jURLSearchParams } from "./search-params";
 
 declare global {
   const global: any;
@@ -10,6 +11,7 @@ const scope = typeof self !== 'undefined' ? self
             : undefined;
 
 const OriginalURL = scope.URL;
+const OriginalURLSearchParams = scope.URLSearchParams;
 
 // feature detect for URL constructor
 let hasWorkingUrl = false;
@@ -23,10 +25,13 @@ if (!scope.forceJURL) {
 }
 
 let URL: typeof window.URL;
+let URLSearchParams: typeof window.URLSearchParams;
 if (hasWorkingUrl) {
   URL = OriginalURL;
+  URLSearchParams = OriginalURLSearchParams;
 } else {
   URL = jURL as any;
+  URLSearchParams = jURLSearchParams as any;
   // Copy over the static methods
   if (OriginalURL) {
     URL.createObjectURL = function (blob) {
@@ -40,4 +45,4 @@ if (hasWorkingUrl) {
   }
 }
 
-export { URL };
+export { URL, URLSearchParams };
