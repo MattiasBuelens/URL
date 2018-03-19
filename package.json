@@ -13,8 +13,11 @@
     "sync-wpt": "git submodule update --init"
   },
   "devDependencies": {
+    "@types/node": "^9.4.7",
     "minimatch": "^3.0.4",
+    "punycode": "^2.1.0",
     "rollup": "^0.56.5",
+    "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-typescript": "^0.8.1",
     "typescript": "^2.7.2",
     "wpt-runner": "^2.2.0"

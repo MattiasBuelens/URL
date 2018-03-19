@@ -1,6 +1,7 @@
 import { isC0ControlPercentEncode, utf8PercentEncodeString, utf8StringPercentDecode } from "./encode";
 import { IPv6Address, parseIPv6, serializeIPv6 } from "./host/ipv6";
 import { IPv4Address, parseIPv4, serializeIPv4 } from "./host/ipv4";
+import punycode from "punycode";
 
 export const enum HostType {
   DOMAIN,
@@ -56,8 +57,7 @@ export function parseHost(input: string, isSpecial: boolean): Host {
   const domain = utf8StringPercentDecode(input);
   // 4. Let asciiDomain be the result of running domain to ASCII on domain.
   // 5. If asciiDomain is failure, validation error, return failure.
-  // TODO steps 4 and 5
-  const asciiDomain = domain;
+  const asciiDomain = domainToAscii(domain);
   // 6. If asciiDomain contains a forbidden host code point, validation error, return failure.
   if (FORBIDDEN_HOST_CODE_POINT.test(asciiDomain)) {
     throw new TypeError('Invalid code point in host');
@@ -76,6 +76,20 @@ export function parseHost(input: string, isSpecial: boolean): Host {
     _type: HostType.DOMAIN,
     _domain: asciiDomain
   };
+}
+
+function domainToAscii(domain: string): string {
+  // 1. If beStrict is not given, set it to false.
+  // Note: only non-strict is implemented
+  // 2. Let result be the result of running Unicode ToASCII with domain_name set to domain,
+  //    UseSTD3ASCIIRules set to beStrict, CheckHyphens set to false, CheckBidi set to true,
+  //    CheckJoiners set to true, processing_option set to Nontransitional_Processing,
+  //    and VerifyDnsLength set to beStrict.
+  // 3. If result is a failure value, validation error, return failure.
+  // TODO Unicode ToASCII, step 1: apply the Processing Steps
+  const result = punycode.toASCII(domain);
+  // 4. Return result.
+  return result;
 }
 
 function parseOpaqueHost(input: string): OpaqueHost {
