@@ -30,7 +30,9 @@ export interface OpaqueHost {
   _data: string;
 }
 
-export type Host = DomainHost | IPv4Host | IPv6Host | OpaqueHost | '';
+export type EmptyHost = '';
+
+export type Host = DomainHost | IPv4Host | IPv6Host | OpaqueHost | EmptyHost;
 
 // https://url.spec.whatwg.org/#forbidden-host-code-point
 // U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR, U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), or U+005D (]).
@@ -73,7 +75,7 @@ export function parseHost(input: string, isSpecial: boolean): Host {
     };
   }
   // 9. Return asciiDomain.
-  return {
+  return asciiDomain === '' ? '' : {
     _type: HostType.DOMAIN,
     _domain: asciiDomain
   };
@@ -97,7 +99,7 @@ function domainToAscii(domain: string): string {
   return result;
 }
 
-function parseOpaqueHost(input: string): OpaqueHost {
+function parseOpaqueHost(input: string): OpaqueHost | EmptyHost {
   // 1. If input contains a forbidden host code point excluding U+0025 (%), validation error, return failure.
   if (FORBIDDEN_HOST_CODE_POINT_EXCLUDING_PERCENT.test(input)) {
     throw new TypeError('Invalid code point in opaque host');
@@ -107,7 +109,7 @@ function parseOpaqueHost(input: string): OpaqueHost {
   // and append the result to output.
   const output = utf8PercentEncodeString(input, isC0ControlPercentEncode);
   // 4. Return output.
-  return {
+  return output === '' ? '' : {
     _type: HostType.OPAQUE,
     _data: output
   };
