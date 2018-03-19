@@ -129,7 +129,7 @@ const enum ParserState {
 
 function parse(input: string, base: UrlRecord | null): UrlRecord;
 function parse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): void;
-function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, stateOverride?: ParserState | null): UrlRecord | void {
+function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = null, stateOverride: ParserState | null = null): UrlRecord | void {
   let errors: string[] = [];
 
   function err(message: string) {
@@ -154,7 +154,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
     input = input.replace(TAB_OR_NEWLINE, '');
   }
   // 4. Let state be state override if given, or scheme start state otherwise.
-  let state: ParserState = stateOverride || ParserState.SCHEME_START;
+  let state: ParserState = stateOverride !== null ? stateOverride : ParserState.SCHEME_START;
   // 5. If base is not given, set it to null.
   base = base || null;
   // 6. Let encoding be UTF-8.
@@ -182,7 +182,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           state = ParserState.SCHEME;
         }
         // 2. Otherwise, if state override is not given, set state to no scheme state, and decrease pointer by one.
-        else if (!stateOverride) {
+        else if (stateOverride === null) {
           buffer = '';
           state = ParserState.NO_SCHEME;
           continue;
@@ -202,7 +202,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 2. Otherwise, if c is U+003A (:), then:
         else if (':' === c) {
           // 1. If state override is given, then:
-          if (stateOverride) {
+          if (stateOverride !== null) {
             // 1. If url’s scheme is a special scheme and buffer is not a special scheme, then return.
             if (isSpecialScheme(url._scheme) && !isSpecialScheme(buffer)) {
               return;
@@ -223,7 +223,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 2. Set url’s scheme to buffer.
           url._scheme = buffer;
           // 3. If state override is given, then:
-          if (stateOverride) {
+          if (stateOverride !== null) {
             // 1. If url’s port is url’s scheme’s default port, then set url’s port to null.
             if (isSpecial(url) && url._port === defaultPorts[url._scheme]) {
               url._port = null;
@@ -268,7 +268,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         // 3. Otherwise, if state override is not given,
         // set buffer to the empty string, state to no scheme state,
         // and start over (from the first code point in input).
-        else if (!stateOverride) {
+        else if (stateOverride === null) {
           buffer = '';
           state = ParserState.NO_SCHEME;
           cursor = 0;
@@ -542,7 +542,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
       case ParserState.HOSTNAME:
         // 1. If state override is given and url’s scheme is "file",
         // then decrease pointer by one and set state to file host state.
-        if (stateOverride && 'file' === url._scheme) {
+        if (stateOverride !== null && 'file' === url._scheme) {
           cursor -= 1;
           state = ParserState.FILE_HOST;
         }
@@ -585,7 +585,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           // 2. Otherwise, if state override is given, buffer is the empty string,
           //    and either url includes credentials or url’s port is non-null,
           //    validation error, return.
-          if (stateOverride && '' === buffer && (includesCredentials(url) || url._port !== null)) {
+          if (stateOverride !== null && '' === buffer && (includesCredentials(url) || url._port !== null)) {
             err(''); // TODO
             return;
           }
@@ -600,7 +600,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           buffer = '';
           state = ParserState.PATH_START;
           // 6. If state override is given, then return.
-          if (stateOverride) {
+          if (stateOverride !== null) {
             return;
           }
         }
@@ -631,7 +631,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         else if (
             (EOF === c || '/' === c || '?' === c || '#' === c) ||
             (isSpecial(url) && ('\\' === c)) ||
-            stateOverride
+            (stateOverride !== null)
         ) {
           // then:
           // 1. If buffer is not the empty string, then:
@@ -650,7 +650,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             buffer = '';
           }
           // 2. If state override is given, then return.
-          if (stateOverride) {
+          if (stateOverride !== null) {
             return;
           }
           // 3. Set state to path start state, and decrease pointer by one.
@@ -769,7 +769,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
           cursor -= 1;
           // 1. If state override is not given and buffer is a Windows drive letter,
           // validation error, set state to path state.
-          if (!stateOverride && isWindowsDriveLetter(buffer)) {
+          if (stateOverride === null && isWindowsDriveLetter(buffer)) {
             err(''); // TODO
             state = ParserState.PATH;
           }
@@ -778,7 +778,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             // 1. Set url’s host to the empty string.
             url._host = '';
             // 2. If state override is given, then return.
-            if (stateOverride) {
+            if (stateOverride !== null) {
               return;
             }
             // 3. Set state to path start state.
@@ -799,7 +799,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
             // 4. Set url’s host to host.
             url._host = host;
             // 5. If state override is given, then return.
-            if (stateOverride) {
+            if (stateOverride !== null) {
               return;
             }
             // 6. Set buffer to the empty string and state to path start state.
@@ -829,13 +829,13 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         }
         // 2. Otherwise, if state override is not given and c is U+003F (?),
         //    set url’s query to the empty string and state to query state.
-        else if (!stateOverride && '?' === c) {
+        else if (stateOverride === null && '?' === c) {
           url._query = '';
           state = ParserState.QUERY;
         }
         // 3. Otherwise, if state override is not given and c is U+0023 (#),
         //    set url’s fragment to the empty string and state to fragment state.
-        else if (!stateOverride && '#' === c) {
+        else if (stateOverride === null && '#' === c) {
           url._fragment = '';
           state = ParserState.FRAGMENT;
         }
@@ -858,7 +858,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
         if (
             (EOF === c || '/' === c) ||
             (isSpecial(url) && '\\' === c) ||
-            (!stateOverride && ('?' === c || '#' === c))
+            (stateOverride === null && ('?' === c || '#' === c))
         ) {
           // then:
           // 1. If url is special and c is U+005C (\), validation error.
@@ -968,7 +968,7 @@ function parse(input: string, base: UrlRecord | null, url?: UrlRecord | null, st
 
       case ParserState.QUERY:
         // 1. If c is the EOF code point, or state override is not given and c is U+0023 (#), then:
-        if (EOF === c || (!stateOverride && '#' === c)) {
+        if (EOF === c || (stateOverride === null && '#' === c)) {
           // 1. If url is not special or url’s scheme is either "ws" or "wss", set encoding to UTF-8.
           // 2. Set buffer to the result of encoding buffer using encoding.
           // TODO encoding
