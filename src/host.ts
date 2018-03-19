@@ -31,6 +31,10 @@ export interface OpaqueHost {
 
 export type Host = DomainHost | IPv4Host | IPv6Host | OpaqueHost | '';
 
+// https://url.spec.whatwg.org/#forbidden-host-code-point
+// U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR, U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), or U+005D (]).
+const FORBIDDEN_HOST_CODE_POINT = /[\0\t\n\r #%/:?@\[\\\]]/;
+
 export function parseHost(input: string, isSpecial: boolean): Host {
   // 1. If input starts with U+005B ([), then:
   if ('[' === input[0]) {
@@ -52,9 +56,12 @@ export function parseHost(input: string, isSpecial: boolean): Host {
   const domain = utf8StringPercentDecode(input);
   // 4. Let asciiDomain be the result of running domain to ASCII on domain.
   // 5. If asciiDomain is failure, validation error, return failure.
-  // 6. If asciiDomain contains a forbidden host code point, validation error, return failure.
-  // TODO steps 4 to 6
+  // TODO steps 4 and 5
   const asciiDomain = domain;
+  // 6. If asciiDomain contains a forbidden host code point, validation error, return failure.
+  if (FORBIDDEN_HOST_CODE_POINT.test(asciiDomain)) {
+    throw new TypeError('Invalid code point in host');
+  }
   // 7. Let ipv4Host be the result of IPv4 parsing asciiDomain.
   const ipv4Host = parseIPv4(asciiDomain);
   // 8. If ipv4Host is an IPv4 address or failure, return ipv4Host.
