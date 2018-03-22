@@ -38,6 +38,14 @@ module.exports = {
     rollupBabel({
       include: 'node_modules/**',
       exclude: 'node_modules/idna-uts46/idna-map.js',
+      plugins: [
+        [
+          require('./build/babel-transform-method'),
+          {
+            'codePointAt': path.resolve(__dirname, './src/polyfill/string-codepointat.ts')
+          }
+        ]
+      ],
     }),
     rollupInject({
       include: 'node_modules/**',
