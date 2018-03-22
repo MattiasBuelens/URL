@@ -1,0 +1,17 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "exclude": [
+          "transform-es2015-for-of"
+        ],
+        "loose": true,
+        "modules": false
+      }
+    ]
+  ],
+  "plugins": [
+    "transform-for-of-as-array"
+  ]
+}

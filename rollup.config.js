@@ -3,6 +3,7 @@ const path = require('path');
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript2 = require('rollup-plugin-typescript2');
+const rollupBabel = require('rollup-plugin-babel');
 const rollupInject = require('rollup-plugin-inject');
 const rollupReplace = require('rollup-plugin-replace');
 const rollupAlias = require('rollup-plugin-alias');
@@ -39,6 +40,10 @@ module.exports = {
     }),
     rollupTypescript2({
       typescript: require('typescript')
+    }),
+    rollupBabel({
+      include: 'node_modules/**',
+      exclude: 'node_modules/idna-uts46/idna-map.js',
     }),
     rollupReplace({
       include: 'src/**',
