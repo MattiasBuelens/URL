@@ -1,5 +1,6 @@
 import { isHexDigit, parseHexDigit } from "./util";
-import { ucs2decode, ucs2encode, utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
+import { utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
+import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 
 // https://url.spec.whatwg.org/#percent-encode
 export function percentEncode(byte: number): string {

@@ -1,4 +1,4 @@
-import { ucs2decode } from "./vendor/utf8";
+import { ucs2decode } from "./vendor/ucs2";
 
 export const ALPHA = /[a-zA-Z]/;
 export const DIGIT = /[0-9]/;
