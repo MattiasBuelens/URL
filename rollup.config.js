@@ -3,6 +3,7 @@ const path = require('path');
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript2 = require('rollup-plugin-typescript2');
+const rollupInject = require('rollup-plugin-inject');
 const rollupReplace = require('rollup-plugin-replace');
 const rollupAlias = require('rollup-plugin-alias');
 
@@ -28,6 +29,12 @@ module.exports = {
       include: 'node_modules/**',
       namedExports: {
         'idna-uts46': ['toAscii']
+      }
+    }),
+    rollupInject({
+      include: 'node_modules/**',
+      modules: {
+        'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
       }
     }),
     rollupTypescript2({
