@@ -2,20 +2,21 @@ import { jURL } from "./url";
 import { URLSearchParams as jURLSearchParams } from "./search-params";
 
 declare global {
-  const global: any;
+  interface Window {
+    forceJURL?: boolean;
+  }
 }
 
 const scope = typeof self !== 'undefined' ? self
     : typeof window !== 'undefined' ? window
-        : typeof global !== 'undefined' ? global
-            : undefined;
+        : undefined;
 
-const OriginalURL = scope.URL;
-const OriginalURLSearchParams = scope.URLSearchParams;
+const OriginalURL = scope && scope.URL;
+const OriginalURLSearchParams = scope && scope.URLSearchParams;
 
 // feature detect for URL constructor
 let hasWorkingUrl = false;
-if (!scope.forceJURL) {
+if (OriginalURL && !(scope && scope.forceJURL)) {
   try {
     const u = new OriginalURL('b', 'http://a');
     u.pathname = 'c%20d';
@@ -27,8 +28,8 @@ if (!scope.forceJURL) {
 let URL: typeof window.URL;
 let URLSearchParams: typeof window.URLSearchParams;
 if (hasWorkingUrl) {
-  URL = OriginalURL;
-  URLSearchParams = OriginalURLSearchParams;
+  URL = OriginalURL!;
+  URLSearchParams = OriginalURLSearchParams!;
 } else {
   URL = jURL as any;
   URLSearchParams = jURLSearchParams as any;

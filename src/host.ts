@@ -1,7 +1,7 @@
 import { isC0ControlPercentEncode, utf8PercentEncodeString, utf8StringPercentDecode } from "./encode";
 import { IPv6Address, parseIPv6, serializeIPv6 } from "./host/ipv6";
 import { IPv4Address, parseIPv4, serializeIPv4 } from "./host/ipv4";
-import idna from "idna-uts46";
+import * as idna from "idna-uts46";
 
 export const enum HostType {
   DOMAIN,

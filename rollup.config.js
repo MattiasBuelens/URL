@@ -16,7 +16,10 @@ module.exports = {
       preferBuiltins: false // do not use punycode from Node
     }),
     rollupCommonJS({
-      include: 'node_modules/**'
+      include: 'node_modules/**',
+      namedExports: {
+        'idna-uts46': ['toAscii']
+      }
     }),
     rollupTypescript2({
       typescript: require('typescript')
