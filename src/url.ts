@@ -14,7 +14,7 @@ import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 import { ALPHA, ALPHANUMERIC, DIGIT, HEX_DIGIT } from "./util";
 import { ucs2decode } from "./vendor/ucs2";
-import { createOpaqueOrigin, createTupleOrigin, OPAQUE_ORIGIN, Origin, serializeOrigin } from "./origin";
+import { createOpaqueOrigin, createTupleOrigin, Origin, serializeOrigin } from "./origin";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
