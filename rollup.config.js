@@ -1,6 +1,6 @@
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
-const rollupTypescript = require('rollup-plugin-typescript');
+const rollupTypescript2 = require('rollup-plugin-typescript2');
 
 module.exports = {
   input: 'src/polyfill.ts',
@@ -18,7 +18,7 @@ module.exports = {
     rollupCommonJS({
       include: 'node_modules/**'
     }),
-    rollupTypescript({
+    rollupTypescript2({
       typescript: require('typescript')
     })
   ]
