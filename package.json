@@ -13,9 +13,9 @@
     "sync-wpt": "git submodule update --init"
   },
   "devDependencies": {
-    "@types/node": "^9.4.7",
     "idna-uts46": "^1.1.0",
     "minimatch": "^3.0.4",
+    "punycode": "^2.1.0",
     "rollup": "^0.56.5",
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-node-resolve": "^3.3.0",
