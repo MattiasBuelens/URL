@@ -1,7 +1,12 @@
+const path = require('path');
+
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript2 = require('rollup-plugin-typescript2');
 const rollupReplace = require('rollup-plugin-replace');
+const rollupAlias = require('rollup-plugin-alias');
+
+const LOOSE = false;
 
 module.exports = {
   input: 'src/polyfill.ts',
@@ -12,6 +17,9 @@ module.exports = {
     sourcemap: true
   },
   plugins: [
+    rollupAlias(LOOSE ? {
+      'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46.js`)
+    } : {}),
     rollupNodeResolve({
       jsnext: true,
       preferBuiltins: false // do not use punycode from Node
@@ -28,7 +36,7 @@ module.exports = {
     rollupReplace({
       include: 'src/**',
       values: {
-        LOOSE: false
+        LOOSE: LOOSE
       }
     })
   ]
