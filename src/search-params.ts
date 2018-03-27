@@ -196,16 +196,14 @@ export class URLSearchParams implements Iterable<[string, string]> {
     this._update();
   }
 
-  [Symbol.iterator](): Iterator<[string, string]> {
-    // The value pairs to iterate over are the list name-value pairs
-    // with the key being the name and the value being the value.
-    return this._list[Symbol.iterator]();
-  }
-
   toString() {
     // The stringification behavior must return the serialization of the URLSearchParams object’s list.
     return serializeUrlEncoded(this._list);
   }
+
+  // The value pairs to iterate over are the list name-value pairs
+  // with the key being the name and the value being the value.
+  [Symbol.iterator]: () => URLSearchParamsIterator<[string, string]>; // implemented below
 
   // iterable<string, string>
   // https://www.w3.org/TR/WebIDL-1/#idl-iterable
@@ -224,6 +222,10 @@ export class URLSearchParams implements Iterable<[string, string]> {
   forEach(callback: (value: [string, string], index: number, iterable: URLSearchParams) => void): void {
     this._list.forEach((value, index) => callback(value, index, this));
   }
+}
+
+if (typeof Symbol !== 'undefined' && typeof Symbol.iterator === 'symbol') {
+  URLSearchParams.prototype[Symbol.iterator] = URLSearchParams.prototype.entries;
 }
 
 type PairSelector<T> = (pair: [string, string]) => T;
