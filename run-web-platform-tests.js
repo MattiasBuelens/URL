@@ -3,7 +3,7 @@ const path = require('path');
 const wptRunner = require('wpt-runner');
 const minimatch = require('minimatch');
 
-const { URL, URLSearchParams } = require('./dist/url.js');
+const { URL, URLSearchParams } = require('./dist/url.es5.js');
 
 const testsPath = path.resolve(__dirname, 'web-platform-tests/url');
 const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
