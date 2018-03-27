@@ -32,18 +32,18 @@ module.exports = {
         'idna-uts46': ['toAscii']
       }
     }),
-    rollupInject({
-      include: 'node_modules/**',
-      modules: {
-        'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
-      }
-    }),
     rollupTypescript2({
       typescript: require('typescript')
     }),
     rollupBabel({
       include: 'node_modules/**',
       exclude: 'node_modules/idna-uts46/idna-map.js',
+    }),
+    rollupInject({
+      include: 'node_modules/**',
+      modules: {
+        'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
+      }
     }),
     rollupReplace({
       include: 'src/**',
