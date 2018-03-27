@@ -12,10 +12,9 @@ module.exports = function ({types: t}) {
         }
 
         const property = callee.property;
-        if (!state.opts[property.name]) {
+        if (!Object.prototype.hasOwnProperty.call(state.opts, property.name)) {
           return;
         }
-
         p.replaceWith(
             t.callExpression(
                 state.addImport(path.resolve(process.cwd(), state.opts[property.name]), 'default', property.name),
