@@ -8,11 +8,11 @@ const rollupInject = require('rollup-plugin-inject');
 const rollupReplace = require('rollup-plugin-replace');
 const rollupAlias = require('rollup-plugin-alias');
 
-function config({loose = false, es5 = false} = {}) {
+function config(name, {loose = false, es5 = false} = {}) {
   return {
     input: 'src/polyfill.ts',
     output: {
-      file: 'dist/url.js',
+      file: `dist/${name}.js`,
       format: 'umd',
       name: 'URL',
       sourcemap: true
@@ -62,4 +62,8 @@ function config({loose = false, es5 = false} = {}) {
   };
 }
 
-module.exports = config({});
+module.exports = [
+  config('url', {}),
+  config('url.loose', {loose: true}),
+  config('url.es5', {loose: true, es5: true})
+];
