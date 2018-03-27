@@ -207,4 +207,46 @@ export class URLSearchParams implements Iterable<[string, string]> {
     return serializeUrlEncoded(this._list);
   }
 
+  // iterable<string, string>
+  // https://www.w3.org/TR/WebIDL-1/#idl-iterable
+  entries(): URLSearchParamsIterator<[string, string]> {
+    return new URLSearchParamsIterator(this._list, selectEntry);
+  }
+
+  keys(): URLSearchParamsIterator<string> {
+    return new URLSearchParamsIterator(this._list, selectKey);
+  }
+
+  values(): URLSearchParamsIterator<string> {
+    return new URLSearchParamsIterator(this._list, selectValue);
+  }
+
+  forEach(callback: (value: [string, string], index: number, iterable: URLSearchParams) => void): void {
+    this._list.forEach((value, index) => callback(value, index, this));
+  }
+}
+
+type PairSelector<T> = (pair: [string, string]) => T;
+
+const selectEntry: PairSelector<[string, string]> = pair => pair;
+const selectKey: PairSelector<string> = pair => pair[0];
+const selectValue: PairSelector<string> = pair => pair[1];
+
+class URLSearchParamsIterator<T> implements Iterator<T> {
+  private readonly _list: Array<[string, string]>;
+  private readonly _selector: PairSelector<T>;
+  private _index = 0;
+
+  constructor(list: Array<[string, string]>, selector: PairSelector<T>) {
+    this._list = list;
+    this._selector = selector;
+  }
+
+  next(): IteratorResult<T> {
+    if (this._index < this._list.length) {
+      return {done: false, value: this._selector(this._list[this._index++])};
+    } else {
+      return {done: true, value: undefined!};
+    }
+  }
 }
