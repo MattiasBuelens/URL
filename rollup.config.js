@@ -73,6 +73,6 @@ function config(name, {loose = false, es5 = false} = {}) {
 
 module.exports = [
   config('url', {}),
-  config('url.loose', {loose: true}),
-  config('url.es5', {loose: true, es5: true})
+  config('url.es5', {es5: true}),
+  config('url.loose', {loose: true, es5: true})
 ];
