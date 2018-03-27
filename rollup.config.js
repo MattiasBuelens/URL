@@ -47,7 +47,10 @@ function config(name, {loose = false, es5 = false} = {}) {
             require('./build/babel-transform-method'),
             {
               'codePointAt': path.resolve(__dirname, './src/polyfill/string-codepointat.ts'),
-              'normalize': path.resolve(__dirname, './src/polyfill/string-normalize.ts')
+              'normalize': path.resolve(__dirname, './src/polyfill/string-normalize.ts'),
+              'startsWith': path.resolve(__dirname, './src/polyfill/string-startswith.ts'),
+              'endsWith': path.resolve(__dirname, './src/polyfill/string-endswith.ts'),
+              'includes': path.resolve(__dirname, './src/polyfill/string-includes.ts')
             }
           ]
         ],
