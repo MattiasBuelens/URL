@@ -5,7 +5,6 @@ const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript2 = require('rollup-plugin-typescript2');
 const rollupBabel = require('rollup-plugin-babel');
 const rollupInject = require('rollup-plugin-inject');
-const rollupReplace = require('rollup-plugin-replace');
 const rollupAlias = require('rollup-plugin-alias');
 
 function config(name, {loose = false, es5 = false} = {}) {
@@ -60,13 +59,7 @@ function config(name, {loose = false, es5 = false} = {}) {
         modules: {
           'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
         }
-      }) : undefined,
-      rollupReplace({
-        include: 'src/**',
-        values: {
-          LOOSE: loose
-        }
-      })
+      }) : undefined
     ].filter(Boolean)
   };
 }
