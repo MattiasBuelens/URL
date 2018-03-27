@@ -32,7 +32,8 @@ function config(name, {loose = false, es5 = false} = {}) {
       rollupCommonJS({
         include: 'node_modules/**',
         namedExports: {
-          'idna-uts46': ['toAscii']
+          'idna-uts46': ['toAscii'],
+          'unorm': ['nfc', 'nfd', 'nfkc', 'nfkd']
         }
       }),
       rollupTypescript2({
@@ -45,7 +46,8 @@ function config(name, {loose = false, es5 = false} = {}) {
           [
             require('./build/babel-transform-method'),
             {
-              'codePointAt': path.resolve(__dirname, './src/polyfill/string-codepointat.ts')
+              'codePointAt': path.resolve(__dirname, './src/polyfill/string-codepointat.ts'),
+              'normalize': path.resolve(__dirname, './src/polyfill/string-normalize.ts')
             }
           ]
         ],
