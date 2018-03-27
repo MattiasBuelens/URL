@@ -9,57 +9,57 @@ const rollupReplace = require('rollup-plugin-replace');
 const rollupAlias = require('rollup-plugin-alias');
 
 function config({loose = false, es5 = false} = {}) {
-return {
-  input: 'src/polyfill.ts',
-  output: {
-    file: 'dist/url.js',
-    format: 'umd',
-    name: 'URL',
-    sourcemap: true
-  },
-  plugins: [
-    loose ? rollupAlias({
-      'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46.js`)
-    }) : undefined,
-    rollupNodeResolve({
-      jsnext: true,
-      preferBuiltins: false // do not use punycode from Node
-    }),
-    rollupCommonJS({
-      include: 'node_modules/**',
-      namedExports: {
-        'idna-uts46': ['toAscii']
-      }
-    }),
-    rollupTypescript2({
-      typescript: require('typescript')
-    }),
-    es5 ? rollupBabel({
-      include: 'node_modules/**',
-      exclude: 'node_modules/idna-uts46/idna-map.js',
-      plugins: [
-        [
-          require('./build/babel-transform-method'),
-          {
-            'codePointAt': path.resolve(__dirname, './src/polyfill/string-codepointat.ts')
-          }
-        ]
-      ],
-    }) : undefined,
-    es5 ? rollupInject({
-      include: 'node_modules/**',
-      modules: {
-        'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
-      }
-    }) : undefined,
-    rollupReplace({
-      include: 'src/**',
-      values: {
-        LOOSE: loose
-      }
-    })
-  ].filter(Boolean)
-};
+  return {
+    input: 'src/polyfill.ts',
+    output: {
+      file: 'dist/url.js',
+      format: 'umd',
+      name: 'URL',
+      sourcemap: true
+    },
+    plugins: [
+      loose ? rollupAlias({
+        'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46.js`)
+      }) : undefined,
+      rollupNodeResolve({
+        jsnext: true,
+        preferBuiltins: false // do not use punycode from Node
+      }),
+      rollupCommonJS({
+        include: 'node_modules/**',
+        namedExports: {
+          'idna-uts46': ['toAscii']
+        }
+      }),
+      rollupTypescript2({
+        typescript: require('typescript')
+      }),
+      es5 ? rollupBabel({
+        include: 'node_modules/**',
+        exclude: 'node_modules/idna-uts46/idna-map.js',
+        plugins: [
+          [
+            require('./build/babel-transform-method'),
+            {
+              'codePointAt': path.resolve(__dirname, './src/polyfill/string-codepointat.ts')
+            }
+          ]
+        ],
+      }) : undefined,
+      es5 ? rollupInject({
+        include: 'node_modules/**',
+        modules: {
+          'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
+        }
+      }) : undefined,
+      rollupReplace({
+        include: 'src/**',
+        values: {
+          LOOSE: loose
+        }
+      })
+    ].filter(Boolean)
+  };
 }
 
 module.exports = config({});
