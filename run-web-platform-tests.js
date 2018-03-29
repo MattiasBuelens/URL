@@ -12,7 +12,8 @@ const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
     'url-constructor.html',
     'url-origin.html',
     'url-setters.html',
-    'url-tojson.html'
+    'url-tojson.html',
+    'urlsearchparams-*.html'
 ];
 
 function filter(testPath) {
