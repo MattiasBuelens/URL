@@ -2,7 +2,7 @@
 const path = require('path');
 const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter');
-const { filteringReporter } = require('./wpt-reporters');
+const { filteringReporter, countingReporter } = require('./wpt-reporters');
 const minimatch = require('minimatch');
 
 const { URL, URLSearchParams } = require('./dist/url.js');
@@ -19,12 +19,16 @@ function filter(testPath) {
   return filterGlobs.some(glob => minimatch(testPath, glob));
 }
 
+// count individual test results
+const counter = countingReporter(consoleReporter);
 // skip URL setter tests for HTML elements
-const reporter = filteringReporter(consoleReporter, { filter: /^(?!<a>|<area>)/ });
+const reporter = filteringReporter(counter, { filter: /^(?!<a>|<area>)/ });
 
 wptRunner(testsPath, { rootURL: 'url/', setup, filter, reporter })
   .then(failures => {
-    process.exitCode = failures;
+    const { counts } = counter;
+    console.log(`\nTotal: ${counts.pass} passed, ${counts.fail} failed, ${counts.skip} skipped`);
+    process.exitCode = counts.fail;
   })
   .catch(e => {
     console.error(e.stack);
