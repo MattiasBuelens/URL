@@ -1,6 +1,8 @@
 'use strict';
 const path = require('path');
 const wptRunner = require('wpt-runner');
+const consoleReporter = require('wpt-runner/lib/console-reporter');
+const { filteringReporter } = require('./wpt-reporters');
 const minimatch = require('minimatch');
 
 const { URL, URLSearchParams } = require('./dist/url.js');
@@ -17,7 +19,10 @@ function filter(testPath) {
   return filterGlobs.some(glob => minimatch(testPath, glob));
 }
 
-wptRunner(testsPath, { rootURL: 'url/', setup, filter })
+// skip URL setter tests for HTML elements
+const reporter = filteringReporter(consoleReporter, { filter: /^(?!<a>|<area>)/ });
+
+wptRunner(testsPath, { rootURL: 'url/', setup, filter, reporter })
   .then(failures => {
     process.exitCode = failures;
   })
