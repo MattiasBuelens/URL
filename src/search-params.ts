@@ -46,7 +46,7 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit =
   else if (isSequence(init)) {
     const initArray = sequenceToArray(init);
     for (const pair of initArray) {
-      const pairArray = sequenceToArray(init);
+      const pairArray = sequenceToArray(pair);
       // 1. If pair does not contain exactly two items, then throw a TypeError.
       if (pairArray.length !== 2) {
         throw new TypeError('Invalid name-value pair');
