@@ -55,3 +55,10 @@ export function parseHexDigit(codePoint: number): number {
   }
   return -1;
 }
+
+export function replaceArray<T>(dest: T[], src: T[]): void {
+  for (let i = 0; i < src.length; i++) {
+    dest[i] = src[i];
+  }
+  dest.length = src.length;
+}

@@ -1,5 +1,5 @@
 import { jURL, setUrlQuery } from "./url";
-import { isSequence, sequenceToArray } from "./util";
+import { isSequence, replaceArray, sequenceToArray } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 
 export type URLSearchParamsInit = Array<[string, string]> | { [name: string]: string } | string;
@@ -24,7 +24,7 @@ export function emptyParams(params: URLSearchParams) {
 }
 
 export function setParamsQuery(params: URLSearchParams, query: string) {
-  (params as any as URLSearchParamsInternals)._list = parseUrlEncoded(query);
+  replaceArray((params as any as URLSearchParamsInternals)._list, parseUrlEncoded(query));
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
