@@ -29,6 +29,6 @@
     "rollup-plugin-typescript2": "^0.12.0",
     "typescript": "^2.7.2",
     "unorm": "^1.4.1",
-    "wpt-runner": "^2.2.0"
+    "wpt-runner": "^2.4.0"
   }
 }
