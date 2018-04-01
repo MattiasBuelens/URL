@@ -219,8 +219,8 @@ export class URLSearchParams implements Iterable<[string, string]> {
     return new URLSearchParamsIterator(this._list, selectValue);
   }
 
-  forEach(callback: (value: [string, string], index: number, iterable: URLSearchParams) => void): void {
-    this._list.forEach((value, index) => callback(value, index, this));
+  forEach(callback: (value: string, key: string, iterable: URLSearchParams) => void): void {
+    this._list.forEach(pair => callback(pair[1], pair[0], this));
   }
 }
 
