@@ -1,11 +1,11 @@
 import { jURL, setUrlQuery } from "./url";
-import { compareByCodePoints, isSequence, sequenceToArray } from "./util";
+import { isSequence, sequenceToArray } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 
 export type URLSearchParamsInit = Array<[string, string]> | { [name: string]: string } | string;
 
-function compareParams(a: [string, string], b: [string, string]): number {
-  return compareByCodePoints(a[0], b[0]);
+function compareParams([key1]: [string, string], [key2]: [string, string]): number {
+  return (key1 === key2) ? 0 : (key1 < key2) ? -1 : 1;
 }
 
 // region URL internals
