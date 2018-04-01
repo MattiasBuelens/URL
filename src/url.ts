@@ -1089,7 +1089,6 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
   return output;
 }
 
-// Does not process domain names or IP addresses.
 // Does not handle encoding for the query parameter.
 export class UrlRecord {
   _scheme: string = '';
