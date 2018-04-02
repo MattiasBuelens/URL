@@ -96,7 +96,6 @@ function domainToAscii(domain: string): string {
   //    CheckJoiners set to true, processing_option set to Nontransitional_Processing,
   //    and VerifyDnsLength set to beStrict.
   // 3. If result is a failure value, validation error, return failure.
-  // TODO This adds a *lot* of code... Make 'light' version?
   const result = idna.toAscii(domain, {
     transitional: false,
     useStd3ASCII: beStrict,

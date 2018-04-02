@@ -876,7 +876,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 2. Otherwise, run these steps:
         else {
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
-          // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. UTF-8 percent encode c using the path percent-encode set,
@@ -899,7 +898,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 3. Otherwise:
         else {
           // 1. If c is not the EOF code point, not a URL code point, and not U+0025 (%), validation error.
-          // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. If c is not the EOF code point,
@@ -932,7 +930,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 2. Otherwise:
         else {
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
-          // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. Append c to buffer.
@@ -950,11 +947,9 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         else {
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
-          // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. UTF-8 percent encode c using the fragment percent-encode set and append the result to url’s fragment.
-          // TODO Handle encoding
           url._fragment += utf8PercentEncode(c.charCodeAt(0), isFragmentPercentEncode);
         }
         break;
@@ -1026,7 +1021,6 @@ function serializeUrl(url: UrlRecord, excludeFragment: boolean = false): string 
   return output;
 }
 
-// Does not handle encoding for the query parameter.
 export class UrlRecord {
   _scheme: string = '';
   _username: string = '';
