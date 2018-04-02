@@ -269,14 +269,14 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.NO_SCHEME:
         // 1. If base is null, or base’s cannot-be-a-base-URL flag is set
-        // and c is not U+0023 (#), validation error, return failure.
+        //    and c is not U+0023 (#), validation error, return failure.
         if (!base || (base._cannotBeABaseURL && '#' !== c)) {
           throw new TypeError('Invalid scheme');
         }
         // 2. Otherwise, if base’s cannot-be-a-base-URL flag is set and c is U+0023 (#),
-        // set url’s scheme to base’s scheme, url’s path to a copy of base’s path,
-        // url’s query to base’s query, url’s fragment to the empty string,
-        // set url’s cannot-be-a-base-URL flag, and set state to fragment state.
+        //    set url’s scheme to base’s scheme, url’s path to a copy of base’s path,
+        //    url’s query to base’s query, url’s fragment to the empty string,
+        //    set url’s cannot-be-a-base-URL flag, and set state to fragment state.
         else if (base._cannotBeABaseURL && '#' === c) {
           url._scheme = base._scheme;
           url._path = base._path.slice();
@@ -286,7 +286,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           state = ParserState.FRAGMENT;
         }
         // 3. Otherwise, if base’s scheme is not "file",
-        // set state to relative state and decrease pointer by one.
+        //    set state to relative state and decrease pointer by one.
         else if ('file' !== base._scheme) {
           state = ParserState.RELATIVE;
           cursor -= 1;
@@ -384,11 +384,11 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // Otherwise, run these steps:
           else {
             // 1. Set url’s username to base’s username,
-            // url’s password to base’s password,
-            // url’s host to base’s host,
-            // url’s port to base’s port,
-            // url’s path to a copy of base’s path,
-            // and then remove url’s path’s last item, if any.
+            //    url’s password to base’s password,
+            //    url’s host to base’s host,
+            //    url’s port to base’s port,
+            //    url’s path to a copy of base’s path,
+            //    and then remove url’s path’s last item, if any.
             url._username = base!._username;
             url._password = base!._password;
             url._host = base!._host;
@@ -501,7 +501,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             throw new TypeError('Invalid host');
           }
           // 2. Decrease pointer by the number of code points in buffer plus one,
-          // set buffer to the empty string, and set state to host state.
+          //    set buffer to the empty string, and set state to host state.
           cursor -= buffer.length + 1;
           buffer = '';
           state = ParserState.HOST;
@@ -608,7 +608,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. If buffer is not the empty string, then:
           if ('' !== buffer) {
             // 1. Let port be the mathematical integer value that is represented
-            // by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
+            //    by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
             const port = parseInt(buffer, 10);
             // 2. If port is greater than 2^16 − 1, validation error, return failure.
             if (port > 2 ** 16 - 1) {
@@ -728,7 +728,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         if (EOF === c || '/' === c || '\\' === c || '?' === c || '#' === c) {
           cursor -= 1;
           // 1. If state override is not given and buffer is a Windows drive letter,
-          // validation error, set state to path state.
+          //    validation error, set state to path state.
           if (stateOverride === null && isWindowsDriveLetter(buffer)) {
             state = ParserState.PATH;
           }
