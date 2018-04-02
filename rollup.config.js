@@ -31,6 +31,7 @@ function config(name, {loose = false, es5 = false} = {}) {
       rollupCommonJS({
         include: 'node_modules/**',
         namedExports: {
+          '@mattiasbuelens/stable': ['inplace'],
           'idna-uts46': ['toAscii'],
           'unorm': ['nfc', 'nfd', 'nfkc', 'nfkd']
         }

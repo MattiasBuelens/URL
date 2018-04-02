@@ -62,3 +62,5 @@ export function replaceArray<T>(dest: T[], src: T[]): void {
   }
   dest.length = src.length;
 }
+
+export { inplace as stableSort } from '@mattiasbuelens/stable';

@@ -13,6 +13,7 @@
     "sync-wpt": "git submodule update --init"
   },
   "devDependencies": {
+    "@mattiasbuelens/stable": "^0.1.7",
     "@types/unorm": "^1.3.27",
     "babel-core": "^6.26.0",
     "babel-plugin-transform-for-of-as-array": "^1.1.1",
