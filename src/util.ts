@@ -10,8 +10,9 @@ export const ONLY_OCT = /^[0-7]+$/;
 
 export type Tuple8<T> = [T, T, T, T, T, T, T, T];
 
+const objectToString = Object.prototype.toString;
 export const isArray: typeof Array.isArray = Array.isArray || function (x) {
-  return Object.prototype.toString.call(x) === '[object Array]';
+  return objectToString.call(x) === '[object Array]';
 };
 
 export function isSequence<T>(x: any): x is Iterable<T> {
@@ -65,6 +66,7 @@ export function replaceArray<T>(dest: T[], src: T[]): void {
 
 export { inplace as stableSort } from '@mattiasbuelens/stable';
 
+const mathMin = Math.min;
 const stringFromCharCode = String.fromCharCode;
 const MAX_SIZE = 0x4000;
 
@@ -74,7 +76,7 @@ export function fromCodeUnits(codeUnits: number[]): string {
   // by splitting input in smaller slices
   const parts: string[] = [];
   for (let start = 0; start < length; start += MAX_SIZE) {
-    const end = Math.min(start + MAX_SIZE, length);
+    const end = mathMin(start + MAX_SIZE, length);
     parts.push(stringFromCharCode.apply(null, codeUnits.slice(start, end)));
   }
   return parts.join('');
