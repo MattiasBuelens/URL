@@ -74,7 +74,7 @@ function config(name, { loose = false, es5 = false, minify = false } = {}) {
 
 module.exports = [
   config('url', { es5: true }),
-  config('url.min', { loose: true, es5: true, minify: true }),
+  config('url.min', { es5: true, minify: true }),
   config('url.es6', { es5: false }),
   config('url.loose', { loose: true, es5: true }),
   config('url.loose.min', { loose: true, es5: true, minify: true })
