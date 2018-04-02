@@ -225,6 +225,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 5. If url’s scheme is "file", then:
           if ('file' === url._scheme) {
             // 1. If remaining does not start with "//", validation error.
+            // 2. Set state to file state.
             state = ParserState.FILE;
           }
           // 6. Otherwise, if url is special, base is non-null, and base’s scheme is equal to url’s scheme,
