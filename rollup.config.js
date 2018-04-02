@@ -4,10 +4,11 @@ const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript2 = require('rollup-plugin-typescript2');
 const rollupBabel = require('rollup-plugin-babel');
+const rollupUglify = require('rollup-plugin-uglify');
 const rollupInject = require('rollup-plugin-inject');
 const rollupAlias = require('rollup-plugin-alias');
 
-function config(name, {loose = false, es5 = false} = {}) {
+function config(name, {loose = false, es5 = false, minify = false} = {}) {
   return {
     input: 'src/polyfill.ts',
     output: [{
@@ -53,20 +54,28 @@ function config(name, {loose = false, es5 = false} = {}) {
               'includes': path.resolve(__dirname, './src/polyfill/string-includes.ts')
             }
           ]
-        ],
+        ]
       }) : undefined,
       es5 ? rollupInject({
         include: 'node_modules/**',
         modules: {
           'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
         }
-      }) : undefined
+      }) : undefined,
+      minify ? rollupUglify(
+          {
+            toplevel: true
+          },
+          require('uglify-es').minify
+      ) : undefined
     ].filter(Boolean)
   };
 }
 
 module.exports = [
   config('url', {es5: true}),
+  config('url.min', {loose: true, es5: true, minify: true}),
   config('url.es6', {es5: false}),
-  config('url.loose', {loose: true, es5: true})
+  config('url.loose', {loose: true, es5: true}),
+  config('url.loose.min', {loose: true, es5: true, minify: true})
 ];
