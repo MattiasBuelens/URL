@@ -7,6 +7,8 @@ exports.filteringReporter = function (next, { filter }) {
     pass(message) {
       if (filter.test(message)) {
         next.pass(message);
+      } else if (next.skip) {
+        next.skip(message);
       }
     },
     fail(message) {
