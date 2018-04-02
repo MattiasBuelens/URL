@@ -1297,7 +1297,7 @@ class URL {
     //    empty context object’s query object’s list,
     //    and then return.
     if ('' === search) {
-      this._url._query = null;
+      url._query = null;
       emptyParams(this._query);
       return;
     }
@@ -1306,9 +1306,9 @@ class URL {
       search = search.slice(1);
     }
     // 4. Set url’s query to the empty string.
-    this._url._query = '';
+    url._query = '';
     // 5. Basic URL parse input with url as url and query state as state override.
-    tryParse(search, null, this._url, ParserState.QUERY);
+    tryParse(search, null, url, ParserState.QUERY);
     // 6. Set context object’s query object’s list to the result of parsing input.
     setParamsQuery(this._query, search);
   }
