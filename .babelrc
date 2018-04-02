@@ -12,6 +12,7 @@
     ]
   ],
   "plugins": [
+    "external-helpers",
     "transform-for-of-as-array"
   ]
 }

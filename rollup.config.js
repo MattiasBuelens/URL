@@ -40,7 +40,6 @@ function config(name, { loose = false, es5 = false, minify = false } = {}) {
         typescript: require('typescript')
       }),
       es5 ? rollupBabel({
-        include: 'node_modules/**',
         exclude: 'node_modules/idna-uts46/idna-map.js',
         plugins: [
           [
