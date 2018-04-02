@@ -2,6 +2,8 @@
   "name": "url-polyfill",
   "version": "0.5.7",
   "main": "dist/url.js",
+  "module": "dist/url.mjs",
+  "browser": "dist/url.min.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/webcomponents/URL.git"
