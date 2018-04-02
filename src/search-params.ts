@@ -247,9 +247,9 @@ class URLSearchParamsIterator<T> implements Iterator<T> {
 
   next(): IteratorResult<T> {
     if (this._index < this._list.length) {
-      return {done: false, value: this._selector(this._list[this._index++])};
+      return { done: false, value: this._selector(this._list[this._index++]) };
     } else {
-      return {done: true, value: undefined!};
+      return { done: true, value: undefined! };
     }
   }
 }

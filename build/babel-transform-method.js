@@ -1,7 +1,7 @@
 const path = require('path');
 const process = require('process');
 
-module.exports = function ({types: t}) {
+module.exports = function ({ types: t }) {
   return {
     visitor: {
       CallExpression(p, state) {

@@ -8,7 +8,7 @@ const rollupUglify = require('rollup-plugin-uglify');
 const rollupInject = require('rollup-plugin-inject');
 const rollupAlias = require('rollup-plugin-alias');
 
-function config(name, {loose = false, es5 = false, minify = false} = {}) {
+function config(name, { loose = false, es5 = false, minify = false } = {}) {
   return {
     input: 'src/polyfill.ts',
     output: [{
@@ -73,9 +73,9 @@ function config(name, {loose = false, es5 = false, minify = false} = {}) {
 }
 
 module.exports = [
-  config('url', {es5: true}),
-  config('url.min', {loose: true, es5: true, minify: true}),
-  config('url.es6', {es5: false}),
-  config('url.loose', {loose: true, es5: true}),
-  config('url.loose.min', {loose: true, es5: true, minify: true})
+  config('url', { es5: true }),
+  config('url.min', { loose: true, es5: true, minify: true }),
+  config('url.es6', { es5: false }),
+  config('url.loose', { loose: true, es5: true }),
+  config('url.loose.min', { loose: true, es5: true, minify: true })
 ];
