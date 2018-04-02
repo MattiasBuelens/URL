@@ -15,12 +15,12 @@ function config(name, { loose = false, es5 = false, minify = false } = {}) {
       file: `dist/${name}.js`,
       format: 'umd',
       name: 'URL',
-      sourcemap: true
+      sourcemap: minify
     }, {
       file: `dist/${name}.mjs`,
       format: 'es',
-      sourcemap: true
-    },],
+      sourcemap: minify
+    }],
     plugins: [
       loose ? rollupAlias({
         'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46.js`)
@@ -64,7 +64,8 @@ function config(name, { loose = false, es5 = false, minify = false } = {}) {
       }) : undefined,
       minify ? rollupUglify(
           {
-            toplevel: true
+            toplevel: true,
+            sourceMap: minify
           },
           require('uglify-es').minify
       ) : undefined
