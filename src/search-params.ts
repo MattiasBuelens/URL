@@ -1,6 +1,7 @@
 import { jURL, setUrlQuery } from "./url";
 import { isSequence, replaceArray, sequenceToArray, stableSort } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
+import { toUSVString } from "./usvstring";
 
 export type URLSearchParamsInit = Array<[string, string]> | { [name: string]: string } | string;
 
@@ -40,6 +41,7 @@ export function newURLSearchParams(init: URLSearchParamsInit = ''): URLSearchPar
 function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit = '') {
   // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
   if (typeof init === 'string') {
+    init = toUSVString(init);
     query._list = parseUrlEncoded(init);
   }
   // 2. If init is a sequence, then for each pair in init:
@@ -53,7 +55,7 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit =
       }
       // 2. Append a new name-value pair whose name is pair’s first item,
       //    and value is pair’s second item, to query’s list.
-      query._list.push([String(pairArray[0]), String(pairArray[1])]);
+      query._list.push([toUSVString(pairArray[0]), toUSVString(pairArray[1])]);
     }
   }
   // 3. Otherwise, if init is a record, then for each name → value in init,
@@ -61,7 +63,7 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit =
   else {
     for (let name in init) {
       if (Object.prototype.hasOwnProperty.call(init, name)) {
-        query._list.push([name, String(init[name])]);
+        query._list.push([toUSVString(name), toUSVString(init[name])]);
       }
     }
   }
@@ -97,8 +99,8 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 
   append(name: string, value: string): void {
-    name = String(name);
-    value = String(value);
+    name = toUSVString(name);
+    value = toUSVString(value);
     // 1. Append a new name-value pair whose name is name and value is value, to list.
     this._list.push([name, value]);
     // 2. Run the update steps.
@@ -106,7 +108,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 
   delete(name: string): void {
-    name = String(name);
+    name = toUSVString(name);
     // 1. Remove all name-value pairs whose name is name from list.
     let index = 0;
     while (index < this._list.length) {
@@ -122,7 +124,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 
   get(name: string): string | null {
-    name = String(name);
+    name = toUSVString(name);
     // Return the value of the first name-value pair whose name is name in list, if there is such a pair,
     // and null otherwise.
     for (const tuple of this._list) {
@@ -134,7 +136,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 
   getAll(name: string): string[] {
-    name = String(name);
+    name = toUSVString(name);
     // Return the values of all name-value pairs whose name is name, in list, in list order,
     // and the empty sequence otherwise.
     const result: string[] = [];
@@ -147,7 +149,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 
   has(name: string): boolean {
-    name = String(name);
+    name = toUSVString(name);
     // Return true if there is a name-value pair whose name is name in list, and false otherwise.
     for (const tuple of this._list) {
       if (tuple[0] === name) {
@@ -158,8 +160,8 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 
   set(name: string, value: string): void {
-    name = String(name);
-    value = String(value);
+    name = toUSVString(name);
+    value = toUSVString(value);
     // 1. If there are any name-value pairs whose name is name, in list,
     //    set the value of the first such name-value pair to value and remove the others.
     let didSet = false;

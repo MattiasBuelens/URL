@@ -15,6 +15,7 @@ import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearc
 import { ALPHA, ALPHANUMERIC, DIGIT, HEX_DIGIT } from "./util";
 import { ucs2decode } from "./vendor/ucs2";
 import { createOpaqueOrigin, createTupleOrigin, Origin, serializeOrigin } from "./origin";
+import { toUSVString } from "./usvstring";
 
 const defaultPorts = Object.create(null);
 defaultPorts['ftp'] = 21;
@@ -1363,6 +1364,7 @@ class URL {
   }
 
   set search(search: string) {
+    search = toUSVString(search);
     // 1. Let url be context object’s url.
     const url = this._url;
     // 2. If the given value is the empty string,
