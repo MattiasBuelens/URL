@@ -132,29 +132,17 @@ const enum ParserState {
 function parse(input: string, base: UrlRecord | null): UrlRecord;
 function parse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): void;
 function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = null, stateOverride: ParserState | null = null): UrlRecord | void {
-  let errors: string[] = [];
-
-  function err(message: string) {
-    errors.push(message);
-  }
-
   // 1. If url is not given:
   if (!url) {
     // 1. Set url to a new URL.
     url = new UrlRecord();
     // 2. If input contains any leading or trailing C0 control or space, validation error.
-    if (LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE.test(input)) {
-      err('Invalid leading or trailing control or space');
-      // 3. Remove any leading and trailing C0 control or space from input.
-      input = input.replace(LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE, '');
-    }
+    // 3. Remove any leading and trailing C0 control or space from input.
+    input = input.replace(LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE, '');
   }
   // 2. If input contains any ASCII tab or newline, validation error.
-  if (TAB_OR_NEWLINE.test(input)) {
-    err('Invalid tab or newline');
-    // 3. Remove all ASCII tab or newline from input.
-    input = input.replace(TAB_OR_NEWLINE, '');
-  }
+  // 3. Remove all ASCII tab or newline from input.
+  input = input.replace(TAB_OR_NEWLINE, '');
   // 4. Let state be state override if given, or scheme start state otherwise.
   let state: ParserState = stateOverride !== null ? stateOverride : ParserState.SCHEME_START;
   // 5. If base is not given, set it to null.
@@ -191,7 +179,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         // 3. Otherwise, validation error, return failure.
         else {
-          err('Invalid scheme.');
           throw new TypeError(`Invalid scheme`);
         }
         break;
@@ -238,9 +225,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 5. If url’s scheme is "file", then:
           if ('file' === url._scheme) {
             // 1. If remaining does not start with "//", validation error.
-            if ('/' !== input[cursor + 1] || '/' !== input[cursor + 2]) {
-              err(`Expected '//', got '${input.substr(cursor + 1, 2)}'`);
-            }
             state = ParserState.FILE;
           }
           // 6. Otherwise, if url is special, base is non-null, and base’s scheme is equal to url’s scheme,
@@ -278,7 +262,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         // 4. Otherwise, validation error, return failure.
         else {
-          err(`Code point not allowed in scheme: ${c}`);
           throw new TypeError(`Invalid scheme`);
         }
         break;
@@ -287,7 +270,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 1. If base is null, or base’s cannot-be-a-base-URL flag is set
         // and c is not U+0023 (#), validation error, return failure.
         if (!base || (base._cannotBeABaseURL && '#' !== c)) {
-          err(''); // TODO
           throw new TypeError('Invalid scheme');
         }
         // 2. Otherwise, if base’s cannot-be-a-base-URL flag is set and c is U+0023 (#),
@@ -323,7 +305,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         // Otherwise, validation error, set state to relative state and decrease pointer by one.
         else {
-          err(`Expected '/', got '${c}'`);
           state = ParserState.RELATIVE;
           cursor -= 1;
         }
@@ -397,7 +378,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // If url is special and c is U+005C (\), validation error,
           // set state to relative slash state.
           if ('\\' === c && isSpecial(url)) {
-            err('\\ is an invalid code point.');
             state = ParserState.RELATIVE_SLASH;
           }
           // Otherwise, run these steps:
@@ -425,9 +405,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 1. If url is special and c is U+002F (/) or U+005C (\), then:
         if (isSpecial(url) && ('/' === c || '\\' === c)) {
           // 1. If c is U+005C (\), validation error.
-          if ('\\' === c) {
-            err('\\ is an invalid code point.');
-          }
           // 2. Set state to special authority ignore slashes state.
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
         }
@@ -461,7 +438,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // set state to special authority ignore slashes state,
         // and decrease pointer by one.
         else {
-          err(`Expected '//', got '${input.substr(cursor, 2)}'`);
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
           continue;
         }
@@ -475,16 +451,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           cursor -= 1;
         }
         // Otherwise, validation error.
-        else {
-          err(`Expected authority, got: ${c}`);
-        }
         break;
 
       case ParserState.AUTHORITY:
         // 1. If c is U+0040 (@), then:
         if ('@' === c) {
           // 1. Validation error.
-          err('@ already seen.');
           // 2. If the @ flag is set, prepend "%40" to buffer.
           if (seenAt) {
             buffer = '%40' + buffer;
@@ -525,7 +497,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. If @ flag is set and buffer is the empty string, validation error, return failure.
           if (seenAt && '' === buffer) {
             // e.g. http://user@/foo
-            err(''); // TODO
             throw new TypeError('Invalid host');
           }
           // 2. Decrease pointer by the number of code points in buffer plus one,
@@ -552,7 +523,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         else if (':' === c && !seenBracket) {
           // 1. If buffer is the empty string, validation error, return failure.
           if ('' === buffer) {
-            err('Empty host');
             throw new TypeError('Invalid host');
           }
           // 2. Let host be the result of host parsing buffer with url is special.
@@ -581,14 +551,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           cursor -= 1;
           // 1. If url is special and buffer is the empty string, validation error, return failure.
           if (isSpecial(url) && '' === buffer) {
-            err(''); // TODO
             throw new TypeError('Invalid host');
           }
           // 2. Otherwise, if state override is given, buffer is the empty string,
           //    and either url includes credentials or url’s port is non-null,
           //    validation error, return.
           if (stateOverride !== null && '' === buffer && (includesCredentials(url) || url._port !== null)) {
-            err(''); // TODO
             return;
           }
           // 3. Let host be the result of host parsing buffer with url is special.
@@ -643,7 +611,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             const port = parseInt(buffer, 10);
             // 2. If port is greater than 2^16 − 1, validation error, return failure.
             if (port > 2 ** 16 - 1) {
-              err('Invalid port');
               throw new TypeError('Invalid port');
             }
             // 3. Set url’s port to null, if port is url’s scheme’s default port, and to port otherwise.
@@ -661,7 +628,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         // 3. Otherwise, validation error, return failure.
         else {
-          err(''); // TODO
           throw new TypeError(`Invalid port`);
         }
         break;
@@ -672,9 +638,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 2. If c is U+002F (/) or U+005C (\), then:
         if ('/' === c || '\\' === c) {
           // 1. If c is U+005C (\), validation error.
-          if ('\\' === c) {
-            err(''); // TODO
-          }
           // 2. Set state to file slash state.
           state = ParserState.FILE_SLASH;
         }
@@ -718,9 +681,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               shortenPath(url);
             }
             // 2. Otherwise, validation error.
-            else {
-              err(''); // TODO
-            }
             // 3. Set state to path state, and decrease pointer by one.
             state = ParserState.PATH;
             cursor -= 1;
@@ -737,9 +697,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 1. If c is U+002F (/) or U+005C (\), then:
         if ('/' === c || '\\' === c) {
           // 1. If c is U+005C (\), validation error.
-          if ('\\' === c) {
-            err(''); // TODO
-          }
           // 2. Set state to file host state.
           state = ParserState.FILE_HOST;
         }
@@ -772,7 +729,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. If state override is not given and buffer is a Windows drive letter,
           // validation error, set state to path state.
           if (stateOverride === null && isWindowsDriveLetter(buffer)) {
-            err(''); // TODO
             state = ParserState.PATH;
           }
           // 2. Otherwise, if buffer is the empty string, then:
@@ -819,9 +775,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 1. If url is special, then:
         if (isSpecial(url)) {
           // 1. If c is U+005C (\), validation error.
-          if ('\\' === c) {
-            err('\\ not allowed in path.');
-          }
           // 2. Set state to path state.
           state = ParserState.PATH;
           // 3. If c is neither U+002F (/) nor U+005C (\), then decrease pointer by one.
@@ -864,9 +817,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         ) {
           // then:
           // 1. If url is special and c is U+005C (\), validation error.
-          if (isSpecial(url) && '\\' === c) {
-            err('\\ not allowed in path.');
-          }
           // 2. If buffer is a double-dot path segment, shorten url’s path,
           //    and then if neither c is U+002F (/), nor url is special and c is U+005C (\),
           //    append the empty string to url’s path.
@@ -892,7 +842,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               // 1. If url’s host is neither the empty string nor null,
               //    validation error, set url’s host to the empty string.
               if (EMPTY_HOST !== url._host && null !== url._host) {
-                err(''); // TODO
                 url._host = EMPTY_HOST;
               }
               // 2. Replace the second code point in buffer with U+003A (:).
@@ -909,7 +858,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    validation error, remove the first item from url’s path.
           if ('file' === url._scheme && (EOF === c || '?' === c || '#' === c)) {
             while (url._path.length > 1 && '' === url._path[0]) {
-              err(''); // TODO
               url._path.shift();
             }
           }
@@ -930,9 +878,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
-          if ('%' === c && !(HEX_DIGIT.test(input[cursor + 1]) && HEX_DIGIT.test(input[cursor + 2]))) {
-            err('Invalid percent escape');
-          }
           // 3. UTF-8 percent encode c using the path percent-encode set,
           //    and append the result to buffer.
           buffer += utf8PercentEncode(c.charCodeAt(0), isPathPercentEncode);
@@ -956,9 +901,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
-          if ('%' === c && !(HEX_DIGIT.test(input[cursor + 1]) && HEX_DIGIT.test(input[cursor + 2]))) {
-            err('Invalid percent escape');
-          }
           // 3. If c is not the EOF code point,
           //    UTF-8 percent encode c using the C0 control percent-encode set,
           //    and append the result to url’s path[0].
@@ -992,9 +934,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
-          if ('%' === c && !(HEX_DIGIT.test(input[cursor + 1]) && HEX_DIGIT.test(input[cursor + 2]))) {
-            err('Invalid percent escape');
-          }
           // 3. Append c to buffer.
           buffer += c;
         }
@@ -1007,16 +946,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         else if ('\0' === c) {
           // Validation error.
-          err('Invalid NULL character');
         }
         else {
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
           // TODO Validate URL code point
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
-          if ('%' === c && !(HEX_DIGIT.test(input[cursor + 1]) && HEX_DIGIT.test(input[cursor + 2]))) {
-            err('Invalid percent escape');
-          }
           // 3. UTF-8 percent encode c using the fragment percent-encode set and append the result to url’s fragment.
           // TODO Handle encoding
           url._fragment += utf8PercentEncode(c.charCodeAt(0), isFragmentPercentEncode);
