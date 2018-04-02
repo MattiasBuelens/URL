@@ -10,7 +10,7 @@ export function toUSVString(val: string): string {
   if (!match) {
     return str;
   }
-  return _toUSVString(str);
+  return _toUSVString(str, match.index);
 }
 
 const UNICODE_REPLACEMENT_CHARACTER = 0xFFFD;
@@ -23,10 +23,10 @@ const stringFromCharCode = String.fromCharCode;
 
 // https://heycam.github.io/webidl/#dfn-obtain-unicode
 // https://github.com/nodejs/node/blob/6de1a12e496b58b1ab1c150b3cee8a8d45040edb/src/node_url.cc#L2143
-function _toUSVString(input: string): string {
+function _toUSVString(input: string, start: number): string {
   const n = input.length;
   const output: number[] = [];
-  for (let i = 0; i < n; i++) {
+  for (let i = start; i < n; i++) {
     let c = input.charCodeAt(i);
     if (!IsUnicodeSurrogate(c)) {
       output.push(c);
@@ -42,5 +42,5 @@ function _toUSVString(input: string): string {
       }
     }
   }
-  return stringFromCharCode(...output);
+  return input.slice(0, start) + stringFromCharCode(...output);
 }
