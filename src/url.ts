@@ -1358,11 +1358,6 @@ class URL {
     return `?${this._url._query}`;
   }
 
-  get searchParams(): URLSearchParams {
-    // Return context object’s query object.
-    return this._query;
-  }
-
   set search(search: string) {
     search = toUSVString(search);
     // 1. Let url be context object’s url.
@@ -1386,6 +1381,11 @@ class URL {
     tryParse(search, null, this._url, ParserState.QUERY);
     // 6. Set context object’s query object’s list to the result of parsing input.
     setParamsQuery(this._query, search);
+  }
+
+  get searchParams(): URLSearchParams {
+    // Return context object’s query object.
+    return this._query;
   }
 
   get hash(): string {
