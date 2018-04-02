@@ -1,8 +1,7 @@
 /*! https://mths.be/utf8js v3.0.0 by @mathias */
 
 import { ucs2decode, ucs2encode } from "./ucs2";
-
-const stringFromCharCode = String.fromCharCode;
+import { fromCodeUnits } from "../util";
 
 function checkScalarValue(codePoint: number) {
   if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
@@ -49,12 +48,7 @@ function utf8encoderaw(codePoints: number[]): number[] {
 }
 
 function utf8encode(string: string): string {
-  const bytes = utf8encoderaw(ucs2decode(string));
-  let byteString = '';
-  for (let byte of bytes) {
-    byteString += stringFromCharCode(byte);
-  }
-  return byteString;
+  return fromCodeUnits(utf8encoderaw(ucs2decode(string)));
 }
 
 /*--------------------------------------------------------------------------*/

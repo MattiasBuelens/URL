@@ -1,6 +1,6 @@
 /*! https://mths.be/utf8js v3.0.0 by @mathias */
 
-const stringFromCharCode = String.fromCharCode;
+import { fromCodeUnits } from "../util";
 
 // Taken from https://mths.be/punycode
 export function ucs2decode(string: string): number[] {
@@ -29,14 +29,14 @@ export function ucs2decode(string: string): number[] {
 
 // Taken from https://mths.be/punycode
 export function ucs2encode(array: number[]): string {
-  let output = '';
+  let output: number[] = [];
   for (let value of array) {
     if (value > 0xFFFF) {
       value -= 0x10000;
-      output += stringFromCharCode(value >>> 10 & 0x3FF | 0xD800);
+      output.push(value >>> 10 & 0x3FF | 0xD800);
       value = 0xDC00 | value & 0x3FF;
     }
-    output += stringFromCharCode(value);
+    output.push(value);
   }
-  return output;
+  return fromCodeUnits(output);
 }

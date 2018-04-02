@@ -64,3 +64,18 @@ export function replaceArray<T>(dest: T[], src: T[]): void {
 }
 
 export { inplace as stableSort } from '@mattiasbuelens/stable';
+
+const stringFromCharCode = String.fromCharCode;
+const MAX_SIZE = 0x4000;
+
+export function fromCodeUnits(codeUnits: number[]): string {
+  const length = codeUnits.length;
+  // Prevent stack overflow when apply()ing with long array
+  // by splitting input in smaller slices
+  const parts: string[] = [];
+  for (let start = 0; start < length; start += MAX_SIZE) {
+    const end = Math.min(start + MAX_SIZE, length);
+    parts.push(stringFromCharCode.apply(null, codeUnits.slice(start, end)));
+  }
+  return parts.join('');
+}
