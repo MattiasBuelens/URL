@@ -11,16 +11,19 @@ const rollupAlias = require('rollup-plugin-alias');
 function config(name, { loose = false, es5 = false, esm = false, minify = false } = {}) {
   return {
     input: 'src/polyfill.ts',
-    output: [{
-      file: `dist/${name}.js`,
-      format: 'umd',
-      name: 'URL',
-      sourcemap: minify
-    }, esm ? {
-      file: `dist/${name}.mjs`,
-      format: 'es',
-      sourcemap: minify
-    } : undefined].filter(Boolean),
+    output: [
+      {
+        file: `dist/${name}.js`,
+        format: 'umd',
+        name: 'URL',
+        sourcemap: minify
+      },
+      esm ? {
+        file: `dist/${name}.mjs`,
+        format: 'es',
+        sourcemap: minify
+      } : undefined
+    ].filter(Boolean),
     plugins: [
       loose ? rollupAlias({
         'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46.js`)
