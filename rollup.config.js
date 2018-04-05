@@ -66,6 +66,11 @@ function config(name, { loose = false, es5 = false, esm = false, minify = false 
       minify ? rollupUglify(
           {
             toplevel: true,
+            mangle: {
+              properties: {
+                regex: /^_/
+              }
+            },
             sourceMap: minify
           },
           require('uglify-es').minify
