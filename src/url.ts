@@ -14,7 +14,7 @@ import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 import { ALPHA, ALPHANUMERIC, DIGIT } from "./util";
 import { ucs2decode } from "./vendor/ucs2";
-import { createOpaqueOrigin, createTupleOrigin, Origin, serializeOrigin } from "./origin";
+import { OPAQUE_ORIGIN, serializeTupleOrigin } from "./origin";
 import { toUSVString } from "./usvstring";
 
 const defaultPorts = Object.create(null);
@@ -1034,7 +1034,7 @@ export class UrlRecord {
 }
 
 // https://url.spec.whatwg.org/#concept-url-origin
-function getOrigin(url: UrlRecord): Origin {
+function getOrigin(url: UrlRecord): string {
   switch (url._scheme) {
     case 'blob': {
       // Let url be the result of parsing URL’s path[0].
@@ -1043,7 +1043,7 @@ function getOrigin(url: UrlRecord): Origin {
       try {
         blobUrl = parse(url._path[0], null);
       } catch (e) {
-        return createOpaqueOrigin();
+        return OPAQUE_ORIGIN;
       }
       return getOrigin(blobUrl);
     }
@@ -1055,13 +1055,13 @@ function getOrigin(url: UrlRecord): Origin {
     case 'wss':
       // Return a tuple consisting of URL’s scheme, URL’s host, URL’s port, and null.
       // Note: URL's host cannot be null, see table at https://url.spec.whatwg.org/#concept-url-host
-      return createTupleOrigin(url._scheme, url._host!, url._port, null);
+      return serializeTupleOrigin(url._scheme, url._host!, url._port);
     case 'file':
       // Unfortunate as it is, this is left as an exercise to the reader. When in doubt, return a new opaque origin.
-      return createOpaqueOrigin();
+      return OPAQUE_ORIGIN;
     default:
       // Return a new opaque origin.
-      return createOpaqueOrigin();
+      return OPAQUE_ORIGIN;
   }
 }
 
@@ -1148,7 +1148,7 @@ class URL {
   }
 
   get origin(): string {
-    return serializeOrigin(getOrigin(this._url));
+    return getOrigin(this._url);
   }
 
   get protocol(): string {

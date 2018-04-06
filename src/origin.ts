@@ -1,55 +1,11 @@
 import { Host, serializeHost } from "./host";
 
-export const enum OriginType {
-  OPAQUE,
-  TUPLE
-}
-
 // https://html.spec.whatwg.org/multipage/origin.html#concept-origin-opaque
-export interface OpaqueOrigin {
-  _type: OriginType.OPAQUE;
-}
-
-export function createOpaqueOrigin(): OpaqueOrigin {
-  return {
-    _type: OriginType.OPAQUE
-  };
-}
+// https://html.spec.whatwg.org/multipage/origin.html#ascii-serialisation-of-an-origin
+export const OPAQUE_ORIGIN = 'null';
 
 // https://html.spec.whatwg.org/multipage/origin.html#concept-origin-tuple
-export interface TupleOrigin {
-  _type: OriginType.TUPLE;
-  _scheme: string;
-  _host: Host;
-  _port: number | null;
-  _domain: string | null;
-}
-
-export function createTupleOrigin(scheme: string,
-                                  host: Host,
-                                  port: number | null,
-                                  domain: string | null): TupleOrigin {
-  return {
-    _type: OriginType.TUPLE,
-    _scheme: scheme,
-    _host: host,
-    _port: port,
-    _domain: domain
-  };
-}
-
-// https://html.spec.whatwg.org/multipage/origin.html#concept-origin
-export type Origin = OpaqueOrigin | TupleOrigin;
-
 // https://html.spec.whatwg.org/multipage/origin.html#ascii-serialisation-of-an-origin
-export function serializeOrigin(origin: Origin): string {
-  // 1. If origin is an opaque origin, then return "null".
-  if (origin._type === OriginType.OPAQUE) {
-    return 'null';
-  }
-  return serializeTupleOrigin(origin._scheme, origin._host, origin._port);
-}
-
 export function serializeTupleOrigin(scheme: string, host: Host, port: number | null): string {
   // 2. Otherwise, let result be origin's scheme.
   // 3. Append "://" to result.
