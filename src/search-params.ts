@@ -236,7 +236,7 @@ if (typeof Symbol !== 'undefined' && typeof Symbol.iterator === 'symbol') {
 
 type PairSelector<T> = (pair: [string, string]) => T;
 
-const selectEntry: PairSelector<[string, string]> = pair => pair;
+const selectEntry: PairSelector<[string, string]> = pair => [pair[0], pair[1]];
 const selectKey: PairSelector<string> = pair => pair[0];
 const selectValue: PairSelector<string> = pair => pair[1];
 
