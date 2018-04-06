@@ -110,11 +110,12 @@ export class URLSearchParams implements Iterable<[string, string]> {
   delete(name: string): void {
     name = toUSVString(name);
     // 1. Remove all name-value pairs whose name is name from list.
+    const list = this._list;
     let index = 0;
-    while (index < this._list.length) {
-      const tuple = this._list[index];
+    while (index < list.length) {
+      const tuple = list[index];
       if (tuple[0] === name) {
-        this._list.splice(index, 1);
+        list.splice(index, 1);
       } else {
         index++;
       }
@@ -127,7 +128,8 @@ export class URLSearchParams implements Iterable<[string, string]> {
     name = toUSVString(name);
     // Return the value of the first name-value pair whose name is name in list, if there is such a pair,
     // and null otherwise.
-    for (const tuple of this._list) {
+    const list = this._list;
+    for (const tuple of list) {
       if (tuple[0] === name) {
         return tuple[1];
       }
@@ -139,8 +141,9 @@ export class URLSearchParams implements Iterable<[string, string]> {
     name = toUSVString(name);
     // Return the values of all name-value pairs whose name is name, in list, in list order,
     // and the empty sequence otherwise.
+    const list = this._list;
     const result: string[] = [];
-    for (const tuple of this._list) {
+    for (const tuple of list) {
       if (tuple[0] === name) {
         result.push(tuple[1]);
       }
@@ -151,7 +154,8 @@ export class URLSearchParams implements Iterable<[string, string]> {
   has(name: string): boolean {
     name = toUSVString(name);
     // Return true if there is a name-value pair whose name is name in list, and false otherwise.
-    for (const tuple of this._list) {
+    const list = this._list;
+    for (const tuple of list) {
       if (tuple[0] === name) {
         return true;
       }
@@ -164,13 +168,14 @@ export class URLSearchParams implements Iterable<[string, string]> {
     value = toUSVString(value);
     // 1. If there are any name-value pairs whose name is name, in list,
     //    set the value of the first such name-value pair to value and remove the others.
+    const list = this._list;
     let didSet = false;
     let index = 0;
-    while (index < this._list.length) {
-      const tuple = this._list[index];
+    while (index < list.length) {
+      const tuple = list[index];
       if (tuple[0] === name) {
         if (didSet) {
-          this._list.splice(index, 1);
+          list.splice(index, 1);
         } else {
           tuple[1] = value;
           didSet = true;
@@ -182,7 +187,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
     }
     // 2. Otherwise, append a new name-value pair whose name is name and value is value, to list.
     if (!didSet) {
-      this._list.push([name, value]);
+      list.push([name, value]);
     }
     // 2. Run the update steps.
     this._update();
