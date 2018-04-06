@@ -46,16 +46,15 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit =
   }
   // 2. If init is a sequence, then for each pair in init:
   else if (isSequence(init)) {
-    const initArray = sequenceToArray(init);
-    for (const pair of initArray) {
-      const pairArray = sequenceToArray(pair);
+    for (const rawPair of sequenceToArray(init)) {
+      const pair = sequenceToArray(rawPair);
       // 1. If pair does not contain exactly two items, then throw a TypeError.
-      if (pairArray.length !== 2) {
+      if (pair.length !== 2) {
         throw new TypeError('Invalid name-value pair');
       }
       // 2. Append a new name-value pair whose name is pair’s first item,
       //    and value is pair’s second item, to query’s list.
-      query._list.push([toUSVString(pairArray[0]), toUSVString(pairArray[1])]);
+      query._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
     }
   }
   // 3. Otherwise, if init is a record, then for each name → value in init,
