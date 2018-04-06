@@ -142,13 +142,13 @@ export class URLSearchParams implements Iterable<[string, string]> {
     // Return the values of all name-value pairs whose name is name, in list, in list order,
     // and the empty sequence otherwise.
     const list = this._list;
-    const result: string[] = [];
+    const values: string[] = [];
     for (const tuple of list) {
       if (tuple[0] === name) {
-        result.push(tuple[1]);
+        values.push(tuple[1]);
       }
     }
-    return result;
+    return values;
   }
 
   has(name: string): boolean {
@@ -169,16 +169,16 @@ export class URLSearchParams implements Iterable<[string, string]> {
     // 1. If there are any name-value pairs whose name is name, in list,
     //    set the value of the first such name-value pair to value and remove the others.
     const list = this._list;
-    let didSet = false;
+    let found = false;
     let index = 0;
     while (index < list.length) {
       const tuple = list[index];
       if (tuple[0] === name) {
-        if (didSet) {
+        if (found) {
           list.splice(index, 1);
         } else {
           tuple[1] = value;
-          didSet = true;
+          found = true;
           index++;
         }
       } else {
@@ -186,7 +186,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       }
     }
     // 2. Otherwise, append a new name-value pair whose name is name and value is value, to list.
-    if (!didSet) {
+    if (!found) {
       list.push([name, value]);
     }
     // 2. Run the update steps.
