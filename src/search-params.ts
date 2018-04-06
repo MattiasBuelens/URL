@@ -29,7 +29,7 @@ export function setParamsQuery(params: URLSearchParams, query: string) {
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
-export function newURLSearchParams(init: URLSearchParamsInit = ''): URLSearchParams {
+export function newURLSearchParams(init: URLSearchParamsInit | undefined = undefined): URLSearchParams {
   // 1. Let query be a new URLSearchParams object.
   const query: URLSearchParams = Object.create(URLSearchParams.prototype);
   initParams(query as any as URLSearchParamsInternals, init);
@@ -38,9 +38,12 @@ export function newURLSearchParams(init: URLSearchParamsInit = ''): URLSearchPar
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
-function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit = '') {
+function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit | undefined = undefined) {
+  if (init === null || init === undefined) {
+    query._list = [];
+  }
   // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
-  if (typeof init === 'string') {
+  else if (typeof init === 'string') {
     init = toUSVString(init);
     query._list = parseUrlEncoded(init);
   }
@@ -74,7 +77,11 @@ export class URLSearchParams implements Iterable<[string, string]> {
   private _list: Array<[string, string]> = [];
   private _url: jURL | null = null;
 
-  constructor(init: URLSearchParamsInit = '') {
+  // URL Standard says the default value is '', but as undefined and '' have
+  // the same result, undefined is used to prevent unnecessary parsing.
+  // Default parameter is necessary to keep URLSearchParams.length === 0 in
+  // accordance with Web IDL spec.
+  constructor(init: URLSearchParamsInit = undefined!) {
     // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
     // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
     if (typeof init === 'string' && init.length > 0 && '?' === init[0]) {
