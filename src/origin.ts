@@ -20,13 +20,13 @@ export function createOpaqueOrigin(): OpaqueOrigin {
 export interface TupleOrigin {
   _type: OriginType.TUPLE;
   _scheme: string;
-  _host: Host | null;
+  _host: Host;
   _port: number | null;
   _domain: string | null;
 }
 
 export function createTupleOrigin(scheme: string,
-                                  host: Host | null,
+                                  host: Host,
                                   port: number | null,
                                   domain: string | null): TupleOrigin {
   return {
@@ -52,9 +52,7 @@ export function serializeOrigin(origin: Origin): string {
   // 3. Append "://" to result.
   result += '://';
   // 4. Append origin's host, serialized, to result.
-  if (origin._host !== null) {
-    result += serializeHost(origin._host);
-  }
+  result += serializeHost(origin._host);
   // 5. If origin's port is non-null, append a U+003A COLON character (:), and origin's port, serialized, to result.
   if (origin._port !== null) {
     result += `:${origin._port}`;

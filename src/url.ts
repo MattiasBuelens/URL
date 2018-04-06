@@ -1054,7 +1054,8 @@ function getOrigin(url: UrlRecord): Origin {
     case 'ws':
     case 'wss':
       // Return a tuple consisting of URL’s scheme, URL’s host, URL’s port, and null.
-      return createTupleOrigin(url._scheme, url._host, url._port, null);
+      // Note: URL's host cannot be null, see table at https://url.spec.whatwg.org/#concept-url-host
+      return createTupleOrigin(url._scheme, url._host!, url._port, null);
     case 'file':
       // Unfortunate as it is, this is left as an exercise to the reader. When in doubt, return a new opaque origin.
       return createOpaqueOrigin();
