@@ -47,16 +47,14 @@ export function serializeOrigin(origin: Origin): string {
   if (origin._type === OriginType.OPAQUE) {
     return 'null';
   }
+  return serializeTupleOrigin(origin._scheme, origin._host, origin._port);
+}
+
+export function serializeTupleOrigin(scheme: string, host: Host, port: number | null): string {
   // 2. Otherwise, let result be origin's scheme.
-  let result = origin._scheme;
   // 3. Append "://" to result.
-  result += '://';
   // 4. Append origin's host, serialized, to result.
-  result += serializeHost(origin._host);
   // 5. If origin's port is non-null, append a U+003A COLON character (:), and origin's port, serialized, to result.
-  if (origin._port !== null) {
-    result += `:${origin._port}`;
-  }
   // 6. Return result.
-  return result;
+  return `${scheme}://${serializeHost(host)}${port === null ? '' : `:${port}`}`;
 }
