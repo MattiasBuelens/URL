@@ -158,16 +158,17 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   let passwordTokenSeenFlag = false;
   // 10. Let pointer be a pointer to first code point in input.
   let cursor = 0;
+  const length = input.length;
 
   // 11. Keep running the following state machine by switching on state.
   //     If after a run pointer points to the EOF code point, go to the next step.
   //     Otherwise, increase pointer by one and continue with the state machine.
-  while (input[cursor - 1] !== EOF || cursor === 0) {
-    const c = input[cursor];
+  while (cursor <= length) {
+    const c = cursor < length ? input[cursor] : EOF;
     switch (state) {
       case ParserState.SCHEME_START:
         // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
-        if (c && ALPHA.test(c)) {
+        if (EOF !== c && ALPHA.test(c)) {
           buffer += c.toLowerCase(); // ASCII-safe
           state = ParserState.SCHEME;
         }
@@ -185,7 +186,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.SCHEME:
         // 1. If c is an ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.), append c, lowercased, to buffer.
-        if (c && ALPHANUMERIC.test(c)) {
+        if (EOF !== c && ALPHANUMERIC.test(c)) {
           buffer += c.toLowerCase(); // ASCII-safe
         }
         // 2. Otherwise, if c is U+003A (:), then:
@@ -586,7 +587,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.PORT:
         // 1. If c is an ASCII digit, append c to buffer.
-        if (DIGIT.test(c)) {
+        if (EOF !== c && DIGIT.test(c)) {
           buffer += c;
         }
         // 2. Otherwise, if one of the following is true:
