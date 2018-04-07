@@ -1072,7 +1072,7 @@ class URL {
   private _url: UrlRecord;
   private readonly _query: URLSearchParams;
 
-  constructor(url: string, base?: string | UrlRecord /* , encoding */) {
+  constructor(url: string, base?: string | UrlRecord) {
     // 1. Let parsedBase be null.
     let parsedBase: UrlRecord | null = null;
     // 2. If base is given, then:
