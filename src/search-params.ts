@@ -29,7 +29,7 @@ export function setParamsQuery(params: URLSearchParams, query: string) {
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
-export function newURLSearchParams(init: URLSearchParamsInit | undefined = undefined): URLSearchParams {
+export function newURLSearchParams(init: URLSearchParamsInit | null | undefined = undefined): URLSearchParams {
   // 1. Let query be a new URLSearchParams object.
   const query: URLSearchParams = Object.create(URLSearchParams.prototype);
   initParams(query as any as URLSearchParamsInternals, init);
@@ -38,7 +38,7 @@ export function newURLSearchParams(init: URLSearchParamsInit | undefined = undef
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
-function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit | undefined = undefined) {
+function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit | null | undefined = undefined) {
   if (init === null || init === undefined) {
     query._list = [];
   }

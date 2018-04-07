@@ -1094,7 +1094,8 @@ class URL {
       throw new TypeError(`Invalid URL: ${e.message}`);
     }
     // 5. Let query be parsedURL’s query, if that is non-null, and the empty string otherwise.
-    const query = parsedURL._query || '';
+    // Note: we keep the null to skip query parsing in newURLSearchParams
+    const query = parsedURL._query;
     // 6. Let result be a new URL object.
     // 7. Set result’s url to parsedURL.
     this._url = parsedURL;
