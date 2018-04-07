@@ -1193,15 +1193,18 @@ class URL {
     // 1. Let url be context object’s url.
     const url = this._url;
     // 2. If url’s host is null, return the empty string.
-    if (null === url._host) {
+    const host = url._host;
+    if (null === host) {
       return '';
     }
     // 3. If url’s port is null, return url’s host, serialized.
-    if (null === url._port) {
-      return serializeHost(url._host);
-    }
     // 4. Return url’s host, serialized, followed by U+003A (:) and url’s port, serialized.
-    return `${serializeHost(url._host)}:${url._port}`;
+    const port = url._port;
+    let result = serializeHost(host);
+    if (null !== port) {
+      result += `:${port}`;
+    }
+    return result;
   }
 
   set host(host: string) {
@@ -1215,11 +1218,12 @@ class URL {
 
   get hostname(): string {
     // 1. If context object’s url’s host is null, return the empty string.
-    if (null === this._url._host) {
+    const host = this._url._host;
+    if (null === host) {
       return '';
     }
     // 2. Return context object’s url’s host, serialized.
-    return serializeHost(this._url._host);
+    return serializeHost(host);
   }
 
   set hostname(hostname: string) {
@@ -1233,11 +1237,12 @@ class URL {
 
   get port(): string {
     // 1. If context object’s url’s port is null, return the empty string.
-    if (null === this._url._port) {
+    const port = this._url._port;
+    if (null === port) {
       return '';
     }
     // 2. Return context object’s url’s port, serialized.
-    return `${this._url._port}`;
+    return `${port}`;
   }
 
   set port(port: string) {
@@ -1257,16 +1262,17 @@ class URL {
 
   get pathname(): string {
     // 1. If context object’s url’s cannot-be-a-base-URL flag is set, then return context object’s url’s path[0].
+    const path = this._url._path;
     if (this._url._cannotBeABaseURL) {
-      return this._url._path[0];
+      return path[0];
     }
     // 2. If context object’s url’s path is empty, then return the empty string.
-    if (this._url._path.length === 0) {
+    if (path.length === 0) {
       return '';
     }
     // 3. Return U+002F (/), followed by the strings in context object’s url’s path (including empty strings), if any,
     //    separated from each other by U+002F (/).
-    return '/' + this._url._path.join('/');
+    return '/' + path.join('/');
   }
 
   set pathname(pathname: string) {
@@ -1282,11 +1288,12 @@ class URL {
 
   get search(): string {
     // 1. If context object’s url’s query is either null or the empty string, return the empty string.
-    if (null === this._url._query || '' === this._url._query) {
+    const query = this._url._query;
+    if (null === query || '' === query) {
       return '';
     }
     // 2. Return U+003F (?), followed by context object’s url’s query.
-    return `?${this._url._query}`;
+    return `?${query}`;
   }
 
   set search(search: string) {
@@ -1321,11 +1328,12 @@ class URL {
 
   get hash(): string {
     // 1. If context object’s url’s fragment is either null or the empty string, return the empty string.
-    if (null === this._url._fragment || '' === this._url._fragment) {
+    const fragment = this._url._fragment;
+    if (null === fragment || '' === fragment) {
       return '';
     }
     // 2. Return U+0023 (#), followed by context object’s url’s fragment.
-    return `#${this._url._fragment}`;
+    return `#${fragment}`;
   }
 
   set hash(hash: string) {
