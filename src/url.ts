@@ -527,11 +527,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             throw new TypeError('Invalid host');
           }
           // 2. Let host be the result of host parsing buffer with url is special.
-          const host = parseHost(buffer, isSpecial(url));
           // 3. If host is failure, then return failure.
-          if (host === undefined) {
-            throw new TypeError('Invalid host');
-          }
+          const host = parseHost(buffer, isSpecial(url));
           // 4. Set url’s host to host, buffer to the empty string, and state to port state.
           url._host = host;
           buffer = '';
@@ -561,11 +558,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             return;
           }
           // 3. Let host be the result of host parsing buffer with url is special.
-          const host = parseHost(buffer, isSpecial(url));
           // 4. If host is failure, then return failure.
-          if (host === undefined) {
-            throw new TypeError('Invalid host');
-          }
+          const host = parseHost(buffer, isSpecial(url));
           // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
           url._host = host;
           buffer = '';
@@ -746,11 +740,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 3. Otherwise, run these steps:
           else {
             // 1. Let host be the result of host parsing buffer with url is special.
-            let host = parseHost(buffer, isSpecial(url));
             // 2. If host is failure, then return failure.
-            if (host === undefined) {
-              throw new TypeError('Invalid host');
-            }
+            let host = parseHost(buffer, isSpecial(url));
             // 3. If host is "localhost", then set host to the empty string.
             if (host._type === HostType.DOMAIN && 'localhost' === host._domain) {
               host = EMPTY_HOST;
