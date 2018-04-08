@@ -954,7 +954,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   return url;
 }
 
-function tryParse(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): void {
+function parseSilent(input: string, base: UrlRecord | null, url: UrlRecord, stateOverride: ParserState): void {
   try {
     parse(input, base, url, stateOverride);
   } catch {
@@ -1167,7 +1167,7 @@ class URL {
   }
 
   set protocol(protocol: string) {
-    tryParse(protocol + ':', null, this._url, ParserState.SCHEME_START);
+    parseSilent(protocol + ':', null, this._url, ParserState.SCHEME_START);
   }
 
   get username(): string {
@@ -1224,7 +1224,7 @@ class URL {
       return;
     }
     // 2. Basic URL parse the given value with context object’s url as url and host state as state override.
-    tryParse(host, null, this._url, ParserState.HOST);
+    parseSilent(host, null, this._url, ParserState.HOST);
   }
 
   get hostname(): string {
@@ -1243,7 +1243,7 @@ class URL {
       return;
     }
     // 2. Basic URL parse the given value with context object’s url as url and hostname state as state override.
-    tryParse(hostname, null, this._url, ParserState.HOSTNAME);
+    parseSilent(hostname, null, this._url, ParserState.HOSTNAME);
   }
 
   get port(): string {
@@ -1267,7 +1267,7 @@ class URL {
     }
     // 3. Otherwise, basic URL parse the given value with context object’s url as url and port state as state override.
     else {
-      tryParse(port, null, this._url, ParserState.PORT);
+      parseSilent(port, null, this._url, ParserState.PORT);
     }
   }
 
@@ -1294,7 +1294,7 @@ class URL {
     // 2. Empty context object’s url’s path.
     this._url._path.length = 0;
     // 3. Basic URL parse the given value with context object’s url as url and path start state as state override.
-    tryParse(pathname, null, this._url, ParserState.PATH_START);
+    parseSilent(pathname, null, this._url, ParserState.PATH_START);
   }
 
   get search(): string {
@@ -1327,7 +1327,7 @@ class URL {
     // 4. Set url’s query to the empty string.
     url._query = '';
     // 5. Basic URL parse input with url as url and query state as state override.
-    tryParse(search, null, url, ParserState.QUERY);
+    parseSilent(search, null, url, ParserState.QUERY);
     // 6. Set context object’s query object’s list to the result of parsing input.
     setParamsQuery(this._query, search);
   }
@@ -1360,7 +1360,7 @@ class URL {
     // 3. Set context object’s url’s fragment to the empty string.
     this._url._fragment = '';
     // 4. Basic URL parse input with context object’s url as url and fragment state as state override.
-    tryParse(hash, null, this._url, ParserState.FRAGMENT);
+    parseSilent(hash, null, this._url, ParserState.FRAGMENT);
   }
 }
 
