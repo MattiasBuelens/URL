@@ -1,7 +1,9 @@
 const path = require('path');
 const process = require('process');
+const { types: t } = require('@babel/core');
+const { addDefault } = require('@babel/helper-module-imports');
 
-module.exports = function ({ types: t }) {
+module.exports = function () {
   return {
     visitor: {
       CallExpression(p, state) {
@@ -17,7 +19,7 @@ module.exports = function ({ types: t }) {
         }
         p.replaceWith(
             t.callExpression(
-                state.addImport(path.resolve(process.cwd(), state.opts[property.name]), 'default', property.name),
+                addDefault(p, path.resolve(process.cwd(), state.opts[property.name]), { nameHint: property.name }),
                 [
                   callee.object,
                   ...node.arguments
