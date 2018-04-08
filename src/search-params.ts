@@ -60,9 +60,8 @@ export class URLSearchParams implements Iterable<[string, string]> {
       init = init.slice(1);
     }
 
-    const query = this;
     if (init === null || init === undefined) {
-      query._list = [];
+      this._list = [];
     }
     else if (typeof init === 'object' || typeof init === 'function') {
       // 2. If init is a sequence, then for each pair in init:
@@ -75,7 +74,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
           }
           // 2. Append a new name-value pair whose name is pair’s first item,
           //    and value is pair’s second item, to query’s list.
-          query._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
+          this._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
         }
       }
       // 3. Otherwise, if init is a record, then for each name → value in init,
@@ -83,7 +82,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       else {
         for (let name in init) {
           if (Object.prototype.hasOwnProperty.call(init, name)) {
-            query._list.push([toUSVString(name), toUSVString(init[name])]);
+            this._list.push([toUSVString(name), toUSVString(init[name])]);
           }
         }
       }
@@ -91,7 +90,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
     // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
     else {
       init = toUSVString(init);
-      query._list = parseUrlEncoded(init);
+      this._list = parseUrlEncoded(init);
     }
   }
 
