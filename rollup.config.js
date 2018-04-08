@@ -32,7 +32,8 @@ function config(name, {
     ].filter(Boolean),
     plugins: [
       loose ? rollupAlias({
-        'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46.js`)
+        'idna-uts46': path.resolve(__dirname, `src/loose/idna-uts46`),
+        resolve: ['.ts', '.js']
       }) : undefined,
       rollupNodeResolve({
         jsnext: true,
