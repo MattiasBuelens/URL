@@ -54,12 +54,6 @@ export class URLSearchParams implements Iterable<[string, string]> {
   // Default parameter is necessary to keep URLSearchParams.length === 0 in
   // accordance with Web IDL spec.
   constructor(init: URLSearchParamsInit = undefined!) {
-    // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
-    // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
-    if (typeof init === 'string' && init.length > 0 && '?' === init[0]) {
-      init = init.slice(1);
-    }
-
     if (init === null || init === undefined) {
       this._list = [];
     }
@@ -90,6 +84,11 @@ export class URLSearchParams implements Iterable<[string, string]> {
     // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
     else {
       init = toUSVString(init);
+      // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
+      // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
+      if (init.length > 0 && '?' === init[0]) {
+        init = init.slice(1);
+      }
       this._list = parseUrlEncoded(init);
     }
   }
