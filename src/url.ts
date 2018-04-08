@@ -1069,6 +1069,20 @@ export function setUrlQuery(url: URL, query: string | null) {
 
 // endregion
 
+function isURL(x: any): x is URL {
+  if (x == null) {
+    return false;
+  }
+  if (!(x instanceof URL)) {
+    return false;
+  }
+  if (typeof (x as any as URLInternals)._url !== 'object') {
+    // Bail out if internal URL record is missing
+    return false;
+  }
+  return true;
+}
+
 class URL {
   private _url: UrlRecord;
   private readonly _query: URLSearchParams;
@@ -1078,12 +1092,16 @@ class URL {
     let parsedBase: UrlRecord | null = null;
     // 2. If base is given, then:
     if (base !== undefined) {
+      if (isURL(base)) {
+        parsedBase = base._url;
+      } else {
       try {
         // 1. Let parsedBase be the result of running the basic URL parser on base.
         parsedBase = parse(String(base), null);
       } catch (e) {
         // 2. If parsedBase is failure, then throw a TypeError exception.
         throw new TypeError(`Invalid base URL: ${e.message}`);
+      }
       }
     }
     let parsedURL: UrlRecord;
