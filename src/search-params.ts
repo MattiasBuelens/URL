@@ -1,5 +1,5 @@
 import { jURL, setUrlQuery } from "./url";
-import { supportsSymbolIterator, isSequence, replaceArray, sequenceToArray, stableSort } from "./util";
+import { isSequence, replaceArray, sequenceToArray, stableSort, supportsSymbolIterator } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
 
@@ -43,28 +43,28 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit |
     query._list = [];
   }
   else if (typeof init === 'object' || typeof init === 'function') {
-  // 2. If init is a sequence, then for each pair in init:
+    // 2. If init is a sequence, then for each pair in init:
     if (isSequence(init)) {
-    for (const rawPair of sequenceToArray(init)) {
-      const pair = sequenceToArray(rawPair);
-      // 1. If pair does not contain exactly two items, then throw a TypeError.
-      if (pair.length !== 2) {
-        throw new TypeError('Invalid name-value pair');
-      }
-      // 2. Append a new name-value pair whose name is pair’s first item,
-      //    and value is pair’s second item, to query’s list.
-      query._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
-    }
-  }
-  // 3. Otherwise, if init is a record, then for each name → value in init,
-  //    append a new name-value pair whose name is name and value is value, to query’s list.
-  else {
-    for (let name in init) {
-      if (Object.prototype.hasOwnProperty.call(init, name)) {
-        query._list.push([toUSVString(name), toUSVString(init[name])]);
+      for (const rawPair of sequenceToArray(init)) {
+        const pair = sequenceToArray(rawPair);
+        // 1. If pair does not contain exactly two items, then throw a TypeError.
+        if (pair.length !== 2) {
+          throw new TypeError('Invalid name-value pair');
+        }
+        // 2. Append a new name-value pair whose name is pair’s first item,
+        //    and value is pair’s second item, to query’s list.
+        query._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
       }
     }
-  }
+    // 3. Otherwise, if init is a record, then for each name → value in init,
+    //    append a new name-value pair whose name is name and value is value, to query’s list.
+    else {
+      for (let name in init) {
+        if (Object.prototype.hasOwnProperty.call(init, name)) {
+          query._list.push([toUSVString(name), toUSVString(init[name])]);
+        }
+      }
+    }
   }
   // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
   else {
