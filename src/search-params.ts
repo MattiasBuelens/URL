@@ -29,10 +29,15 @@ export function setParamsQuery(params: URLSearchParams, query: string) {
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
-export function newURLSearchParams(init: URLSearchParamsInit | null | undefined = undefined): URLSearchParams {
+// Optimization: only called from URL constructor, which only passes string or null
+export function newURLSearchParams(init: string | null): URLSearchParams {
   // 1. Let query be a new URLSearchParams object.
-  const query: URLSearchParams = Object.create(URLSearchParams.prototype);
-  initParams(query as any as URLSearchParamsInternals, init);
+  const query: URLSearchParams = new URLSearchParams();
+  if (init !== null) {
+    // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
+    // Note: toUSVString is not needed
+    (query as any as URLSearchParamsInternals)._list = parseUrlEncoded(init);
+  }
   // 5. Return query.
   return query;
 }
