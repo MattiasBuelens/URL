@@ -1,9 +1,9 @@
 import { jURL, setUrlQuery } from "./url";
-import { isSequence, replaceArray, sequenceToArray, stableSort, supportsSymbolIterator } from "./util";
+import { isArray, isSequence, replaceArray, sequenceToArray, stableSort, supportsSymbolIterator } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
 
-export type URLSearchParamsInit = Array<[string, string]> | { [name: string]: string } | string;
+export type URLSearchParamsInit = Iterable<[string, string]> | { [name: string]: string } | string;
 
 function compareParams([key1]: [string, string], [key2]: [string, string]): number {
   return (key1 === key2) ? 0 : (key1 < key2) ? -1 : 1;
@@ -60,6 +60,23 @@ function update(params: URLSearchParams): void {
 
 // endregion
 
+function isURLSearchParams(x: any): x is URLSearchParams {
+  if (!(x instanceof URLSearchParams)) {
+    return false;
+  }
+  if (!isArray((x as any as URLSearchParamsInternals)._list)) {
+    // Bail out if internal list is missing
+    return false;
+  }
+  if (supportsSymbolIterator) {
+    // Bail out if iterator was modified
+    if (x[Symbol.iterator] !== urlSearchParamsIteratorMethod) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export class URLSearchParams implements Iterable<[string, string]> {
   private readonly _list: Array<[string, string]> = [];
   private _url: jURL | null = null;
@@ -69,13 +86,17 @@ export class URLSearchParams implements Iterable<[string, string]> {
   // the same result, undefined is used to prevent unnecessary parsing.
   // Default parameter is necessary to keep URLSearchParams.length === 0 in
   // accordance with Web IDL spec.
-  constructor(init: URLSearchParamsInit = undefined!) {
+  constructor(init: URLSearchParamsInit | URLSearchParams = undefined!) {
     if (init === null || init === undefined) {
       this._list = [];
     }
     else if (typeof init === 'object' || typeof init === 'function') {
+      // Shortcut: if init is a URLSearchParams, copy list
+      if (isURLSearchParams(init)) {
+        this._list = init._list.slice();
+      }
       // 2. If init is a sequence, then for each pair in init:
-      if (isSequence(init)) {
+      else if (isSequence(init)) {
         for (const rawPair of sequenceToArray(init)) {
           const pair = sequenceToArray(rawPair);
           // 1. If pair does not contain exactly two items, then throw a TypeError.
@@ -241,8 +262,9 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 }
 
+const urlSearchParamsIteratorMethod = URLSearchParams.prototype.entries;
 if (supportsSymbolIterator) {
-  URLSearchParams.prototype[Symbol.iterator] = URLSearchParams.prototype.entries;
+  URLSearchParams.prototype[Symbol.iterator] = urlSearchParamsIteratorMethod;
 }
 
 type PairSelector<T> = (pair: [string, string]) => T;
