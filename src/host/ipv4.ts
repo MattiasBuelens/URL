@@ -1,6 +1,6 @@
-// https://url.spec.whatwg.org/#concept-ipv4
 import { HEX_PREFIX, ONLY_DEC, ONLY_HEX, ONLY_OCT } from "../util";
 
+// https://url.spec.whatwg.org/#concept-ipv4
 export type IPv4Address = number; // 32-bit unsigned integer
 
 // https://url.spec.whatwg.org/#concept-ipv4-parser
