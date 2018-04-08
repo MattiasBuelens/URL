@@ -1095,13 +1095,13 @@ class URL {
       if (isURL(base)) {
         parsedBase = base._url;
       } else {
-      try {
-        // 1. Let parsedBase be the result of running the basic URL parser on base.
-        parsedBase = parse(String(base), null);
-      } catch (e) {
-        // 2. If parsedBase is failure, then throw a TypeError exception.
-        throw new TypeError(`Invalid base URL: ${e.message}`);
-      }
+        try {
+          // 1. Let parsedBase be the result of running the basic URL parser on base.
+          parsedBase = parse(String(base), null);
+        } catch (e) {
+          // 2. If parsedBase is failure, then throw a TypeError exception.
+          throw new TypeError(`Invalid base URL: ${e.message}`);
+        }
       }
     }
     let parsedURL: UrlRecord;
