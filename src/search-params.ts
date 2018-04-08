@@ -42,9 +42,26 @@ export function newURLSearchParams(init: string | null): URLSearchParams {
   return query;
 }
 
-// https://url.spec.whatwg.org/#concept-urlsearchparams-new
-function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit | null | undefined = undefined) {
-  if (init === null || init === undefined) {
+// endregion
+
+export class URLSearchParams implements Iterable<[string, string]> {
+  private _list: Array<[string, string]> = [];
+  private _url: jURL | null = null;
+
+  // https://url.spec.whatwg.org/#concept-urlsearchparams-new
+  // URL Standard says the default value is '', but as undefined and '' have
+  // the same result, undefined is used to prevent unnecessary parsing.
+  // Default parameter is necessary to keep URLSearchParams.length === 0 in
+  // accordance with Web IDL spec.
+  constructor(init: URLSearchParamsInit = undefined!) {
+    // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
+    // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
+    if (typeof init === 'string' && init.length > 0 && '?' === init[0]) {
+      init = init.slice(1);
+    }
+
+    const query = this;
+    if (init === null || init === undefined) {
     query._list = [];
   }
   else if (typeof init === 'object' || typeof init === 'function') {
@@ -76,25 +93,6 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit |
     init = toUSVString(init);
     query._list = parseUrlEncoded(init);
   }
-}
-
-// endregion
-
-export class URLSearchParams implements Iterable<[string, string]> {
-  private _list: Array<[string, string]> = [];
-  private _url: jURL | null = null;
-
-  // URL Standard says the default value is '', but as undefined and '' have
-  // the same result, undefined is used to prevent unnecessary parsing.
-  // Default parameter is necessary to keep URLSearchParams.length === 0 in
-  // accordance with Web IDL spec.
-  constructor(init: URLSearchParamsInit = undefined!) {
-    // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
-    // 1. If init is a string and starts with U+003F (?), remove the first code point from init.
-    if (typeof init === 'string' && init.length > 0 && '?' === init[0]) {
-      init = init.slice(1);
-    }
-    initParams(this as any as URLSearchParamsInternals, init);
   }
 
   private _update(): void {
