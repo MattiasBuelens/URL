@@ -12,7 +12,7 @@ function compareParams([key1]: [string, string], [key2]: [string, string]): numb
 // region URL internals
 
 interface URLSearchParamsInternals {
-  _list: Array<[string, string]>;
+  readonly _list: Array<[string, string]>;
   _url: jURL | null;
 }
 
@@ -36,7 +36,7 @@ export function newURLSearchParams(init: string | null): URLSearchParams {
   if (init !== null) {
     // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
     // Note: toUSVString is not needed
-    (query as any as URLSearchParamsInternals)._list = parseUrlEncoded(init);
+    setParamsQuery(query, init);
   }
   // 5. Return query.
   return query;
@@ -45,7 +45,7 @@ export function newURLSearchParams(init: string | null): URLSearchParams {
 // endregion
 
 export class URLSearchParams implements Iterable<[string, string]> {
-  private _list: Array<[string, string]> = [];
+  private readonly _list: Array<[string, string]> = [];
   private _url: jURL | null = null;
 
   // https://url.spec.whatwg.org/#concept-urlsearchparams-new
