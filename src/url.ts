@@ -1093,6 +1093,7 @@ class URL {
     // 2. If base is given, then:
     if (base !== undefined) {
       if (isURL(base)) {
+        // Shortcut: if base is a URL, copy URL record
         parsedBase = base._url;
       } else {
         try {
@@ -1107,7 +1108,7 @@ class URL {
     let parsedURL: UrlRecord;
     try {
       // 3. Let parsedURL be the result of running the basic URL parser on url with parsedBase.
-      parsedURL = parse(url, parsedBase);
+      parsedURL = parse(String(url), parsedBase);
     } catch (e) {
       // 4. If parsedURL is failure, throw a TypeError exception.
       throw new TypeError(`Invalid URL: ${e.message}`);
