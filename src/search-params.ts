@@ -87,7 +87,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   // Default parameter is necessary to keep URLSearchParams.length === 0 in
   // accordance with Web IDL spec.
   constructor(init: URLSearchParamsInit | URLSearchParams = undefined!) {
-    if (init === null || init === undefined) {
+    if (init == null) {
       this._list = [];
     }
     else if (typeof init === 'object' || typeof init === 'function') {

@@ -1091,7 +1091,7 @@ class URL {
     // 1. Let parsedBase be null.
     let parsedBase: UrlRecord | null = null;
     // 2. If base is given, then:
-    if (base !== undefined) {
+    if (base != null) {
       if (isURL(base)) {
         // Shortcut: if base is a URL, copy URL record
         parsedBase = base._url;
