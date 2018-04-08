@@ -78,7 +78,7 @@ function isURLSearchParams(x: any): x is URLSearchParams {
 }
 
 export class URLSearchParams implements Iterable<[string, string]> {
-  private readonly _list: Array<[string, string]> = [];
+  private readonly _list: Array<[string, string]>;
   private _url: jURL | null = null;
 
   // https://url.spec.whatwg.org/#concept-urlsearchparams-new
@@ -97,6 +97,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       }
       // 2. If init is a sequence, then for each pair in init:
       else if (isSequence(init)) {
+        this._list = [];
         for (const rawPair of sequenceToArray(init)) {
           const pair = sequenceToArray(rawPair);
           // 1. If pair does not contain exactly two items, then throw a TypeError.
@@ -111,6 +112,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       // 3. Otherwise, if init is a record, then for each name → value in init,
       //    append a new name-value pair whose name is name and value is value, to query’s list.
       else {
+        this._list = [];
         for (let name in init) {
           if (Object.prototype.hasOwnProperty.call(init, name)) {
             this._list.push([toUSVString(name), toUSVString(init[name])]);
