@@ -8,7 +8,12 @@ const rollupUglify = require('rollup-plugin-uglify');
 const rollupInject = require('rollup-plugin-inject');
 const rollupAlias = require('rollup-plugin-alias');
 
-function config(name, { loose = false, es5 = false, esm = false, minify = false } = {}) {
+function config(name, {
+  loose = false,
+  es5 = false,
+  esm = false,
+  minify = false
+} = {}) {
   return {
     input: 'src/polyfill.ts',
     output: [
