@@ -606,7 +606,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             //    by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
             const port = parseInt(buffer, 10);
             // 2. If port is greater than 2^16 − 1, validation error, return failure.
-            if (port > 2 ** 16 - 1) {
+            if (port > (1 << 16) - 1) {
               throw new TypeError('Invalid port');
             }
             // 3. Set url’s port to null, if port is url’s scheme’s default port, and to port otherwise.
