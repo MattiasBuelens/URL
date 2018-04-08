@@ -1,5 +1,5 @@
 import { jURL, setUrlQuery } from "./url";
-import { isSequence, replaceArray, sequenceToArray, stableSort } from "./util";
+import { supportsSymbolIterator, isSequence, replaceArray, sequenceToArray, stableSort } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
 
@@ -236,7 +236,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   }
 }
 
-if (typeof Symbol !== 'undefined' && typeof Symbol.iterator === 'symbol') {
+if (supportsSymbolIterator) {
   URLSearchParams.prototype[Symbol.iterator] = URLSearchParams.prototype.entries;
 }
 

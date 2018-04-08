@@ -17,14 +17,18 @@ export const isArray: typeof Array.isArray = Array.isArray || function (x) {
   return objectToString.call(x) === '[object Array]';
 };
 
+export const supportsSymbolIterator = (typeof Symbol !== 'undefined' && typeof Symbol.iterator === 'symbol');
+
 export function isSequence<T>(x: any): x is Iterable<T> {
   if (x == null) {
     return false;
   }
-  if (typeof Symbol !== 'undefined') {
+  if (isArray(x)) {
+    return true;
+  } else if (supportsSymbolIterator) {
     return typeof x[Symbol.iterator] === 'function';
   } else {
-    return isArray(x);
+    return false;
   }
 }
 
@@ -32,6 +36,8 @@ export function sequenceToArray<T>(x: Iterable<T>): T[] {
   if (isArray(x)) {
     return x;
   } else {
+    // Assert: supportsSymbolIterator === true
+    // Symbol.iterator support implies Array.from support
     return Array.from(x);
   }
 }
