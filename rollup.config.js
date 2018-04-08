@@ -74,6 +74,9 @@ function config(name, {
       minify ? rollupUglify(
           {
             toplevel: true,
+            compress: {
+              reduce_funcs: false
+            },
             mangle: {
               properties: {
                 regex: /^_/
