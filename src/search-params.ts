@@ -62,37 +62,37 @@ export class URLSearchParams implements Iterable<[string, string]> {
 
     const query = this;
     if (init === null || init === undefined) {
-    query._list = [];
-  }
-  else if (typeof init === 'object' || typeof init === 'function') {
-    // 2. If init is a sequence, then for each pair in init:
-    if (isSequence(init)) {
-      for (const rawPair of sequenceToArray(init)) {
-        const pair = sequenceToArray(rawPair);
-        // 1. If pair does not contain exactly two items, then throw a TypeError.
-        if (pair.length !== 2) {
-          throw new TypeError('Invalid name-value pair');
+      query._list = [];
+    }
+    else if (typeof init === 'object' || typeof init === 'function') {
+      // 2. If init is a sequence, then for each pair in init:
+      if (isSequence(init)) {
+        for (const rawPair of sequenceToArray(init)) {
+          const pair = sequenceToArray(rawPair);
+          // 1. If pair does not contain exactly two items, then throw a TypeError.
+          if (pair.length !== 2) {
+            throw new TypeError('Invalid name-value pair');
+          }
+          // 2. Append a new name-value pair whose name is pair’s first item,
+          //    and value is pair’s second item, to query’s list.
+          query._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
         }
-        // 2. Append a new name-value pair whose name is pair’s first item,
-        //    and value is pair’s second item, to query’s list.
-        query._list.push([toUSVString(pair[0]), toUSVString(pair[1])]);
+      }
+      // 3. Otherwise, if init is a record, then for each name → value in init,
+      //    append a new name-value pair whose name is name and value is value, to query’s list.
+      else {
+        for (let name in init) {
+          if (Object.prototype.hasOwnProperty.call(init, name)) {
+            query._list.push([toUSVString(name), toUSVString(init[name])]);
+          }
+        }
       }
     }
-    // 3. Otherwise, if init is a record, then for each name → value in init,
-    //    append a new name-value pair whose name is name and value is value, to query’s list.
+    // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
     else {
-      for (let name in init) {
-        if (Object.prototype.hasOwnProperty.call(init, name)) {
-          query._list.push([toUSVString(name), toUSVString(init[name])]);
-        }
-      }
+      init = toUSVString(init);
+      query._list = parseUrlEncoded(init);
     }
-  }
-  // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
-  else {
-    init = toUSVString(init);
-    query._list = parseUrlEncoded(init);
-  }
   }
 
   private _update(): void {
