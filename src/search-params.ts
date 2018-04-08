@@ -42,13 +42,9 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit |
   if (init === null || init === undefined) {
     query._list = [];
   }
-  // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
-  else if (typeof init === 'string') {
-    init = toUSVString(init);
-    query._list = parseUrlEncoded(init);
-  }
+  else if (typeof init === 'object' || typeof init === 'function') {
   // 2. If init is a sequence, then for each pair in init:
-  else if (isSequence(init)) {
+    if (isSequence(init)) {
     for (const rawPair of sequenceToArray(init)) {
       const pair = sequenceToArray(rawPair);
       // 1. If pair does not contain exactly two items, then throw a TypeError.
@@ -68,6 +64,12 @@ function initParams(query: URLSearchParamsInternals, init: URLSearchParamsInit |
         query._list.push([toUSVString(name), toUSVString(init[name])]);
       }
     }
+  }
+  }
+  // 4. Otherwise, init is a string, then set query’s list to the result of parsing init.
+  else {
+    init = toUSVString(init);
+    query._list = parseUrlEncoded(init);
   }
 }
 
