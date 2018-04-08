@@ -42,6 +42,22 @@ export function newURLSearchParams(init: string | null): URLSearchParams {
   return query;
 }
 
+// https://url.spec.whatwg.org/#concept-urlsearchparams-update
+function update(params: URLSearchParams): void {
+  const context = params as any as URLSearchParamsInternals;
+  if (!context._url) {
+    return;
+  }
+  // 1. Let query be the serialization of URLSearchParams object’s list.
+  let query: string | null = serializeUrlEncoded(context._list);
+  // 2. If query is the empty string, then set query to null.
+  if ('' === query) {
+    query = null;
+  }
+  // 3. Set url object’s url’s query to query.
+  setUrlQuery(context._url, query);
+}
+
 // endregion
 
 export class URLSearchParams implements Iterable<[string, string]> {
@@ -93,27 +109,13 @@ export class URLSearchParams implements Iterable<[string, string]> {
     }
   }
 
-  private _update(): void {
-    if (!this._url) {
-      return;
-    }
-    // 1. Let query be the serialization of URLSearchParams object’s list.
-    let query: string | null = serializeUrlEncoded(this._list);
-    // 2. If query is the empty string, then set query to null.
-    if ('' === query) {
-      query = null;
-    }
-    // 3. Set url object’s url’s query to query.
-    setUrlQuery(this._url, query);
-  }
-
   append(name: string, value: string): void {
     name = toUSVString(name);
     value = toUSVString(value);
     // 1. Append a new name-value pair whose name is name and value is value, to list.
     this._list.push([name, value]);
     // 2. Run the update steps.
-    this._update();
+    update(this);
   }
 
   delete(name: string): void {
@@ -130,7 +132,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       }
     }
     // 2. Run the update steps.
-    this._update();
+    update(this);
   }
 
   get(name: string): string | null {
@@ -199,7 +201,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
       list.push([name, value]);
     }
     // 2. Run the update steps.
-    this._update();
+    update(this);
   }
 
   sort(): void {
@@ -208,7 +210,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
     //    The relative order between name-value pairs with equal names must be preserved.
     stableSort(this._list, compareParams);
     // 2. Run the update steps.
-    this._update();
+    update(this);
   }
 
   toString() {
