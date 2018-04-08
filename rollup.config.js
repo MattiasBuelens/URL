@@ -7,6 +7,7 @@ const rollupBabel = require('rollup-plugin-babel');
 const rollupUglify = require('rollup-plugin-uglify');
 const rollupInject = require('rollup-plugin-inject');
 const rollupAlias = require('rollup-plugin-alias');
+const rollupVisualizer = require('rollup-plugin-visualizer');
 
 function config(name, {
   loose = false,
@@ -77,10 +78,14 @@ function config(name, {
                 regex: /^_/
               }
             },
-            sourceMap: minify
+            sourceMap: true
           },
           require('uglify-es').minify
-      ) : undefined
+      ) : undefined,
+      minify ? rollupVisualizer({
+        filename: `${name}.stats.html`,
+        sourcemap: true
+      }) : undefined
     ].filter(Boolean)
   };
 }
