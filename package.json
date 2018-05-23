@@ -4,6 +4,10 @@
   "main": "dist/url.js",
   "module": "dist/url.mjs",
   "browser": "dist/url.min.js",
+  "files": [
+    "dist/",
+    "loose/"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/webcomponents/URL.git"
