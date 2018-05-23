@@ -4,7 +4,7 @@ const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupTypescript2 = require('rollup-plugin-typescript2');
 const rollupBabel = require('rollup-plugin-babel');
-const rollupUglify = require('rollup-plugin-uglify');
+const {terser: rollupTerser} = require('rollup-plugin-terser');
 const rollupInject = require('rollup-plugin-inject');
 const rollupAlias = require('rollup-plugin-alias');
 const rollupVisualizer = require('rollup-plugin-visualizer');
@@ -72,7 +72,7 @@ function config(name, {
           'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
         }
       }) : undefined,
-      minify ? rollupUglify(
+      minify ? rollupTerser(
           {
             toplevel: true,
             compress: {
@@ -84,8 +84,7 @@ function config(name, {
               }
             },
             sourceMap: true
-          },
-          require('uglify-es').minify
+          }
       ) : undefined,
       minify ? rollupVisualizer({
         filename: `${name}.stats.html`,
