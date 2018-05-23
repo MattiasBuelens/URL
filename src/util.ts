@@ -1,4 +1,4 @@
-import * as stable from 'stable';
+import {inplace} from 'stable';
 
 export const ALPHA = /[a-zA-Z]/;
 export const DIGIT = /[0-9]/;
@@ -72,7 +72,7 @@ export function replaceArray<T>(dest: T[], src: T[]): void {
   dest.length = src.length;
 }
 
-export const stableSort = stable.inplace;
+export {inplace as stableSort};
 
 const mathMin = Math.min;
 const stringFromCharCode = String.fromCharCode;
