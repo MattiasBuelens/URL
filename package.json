@@ -10,9 +10,17 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webcomponents/URL.git"
+    "url": "git+https://github.com/MattiasBuelens/url-polyfill.git"
   },
+  "bugs": {
+    "url": "https://github.com/MattiasBuelens/url-polyfill/issues"
+  },
+  "homepage": "https://github.com/MattiasBuelens/url-polyfill#readme",
   "license": "SAX-PD",
+  "author": "Mattias Buelens <mattias@buelens.com>",
+  "contributors": [
+    "Erik Arvidsson <arv@chromium.org>"
+  ],
   "scripts": {
     "build": "rollup -c",
     "test": "node run-web-platform-tests.js",
