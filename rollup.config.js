@@ -43,6 +43,7 @@ function config(name, {
         include: 'node_modules/**',
         namedExports: {
           'idna-uts46': ['toAscii'],
+          'stable': ['inplace'],
           'unorm': ['nfc', 'nfd', 'nfkc', 'nfkd']
         }
       }),
