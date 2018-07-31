@@ -14,7 +14,7 @@ import {
 import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
 import { ALPHA, ALPHANUMERIC, DIGIT } from "./util";
-import { ucs2decode } from "./vendor/ucs2";
+import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 import { OPAQUE_ORIGIN, serializeTupleOrigin } from "./origin";
 import { toUSVString } from "./usvstring";
 
@@ -50,19 +50,19 @@ function includesCredentials(url: UrlRecord): boolean {
   return url._username !== '' || url._password !== '';
 }
 
-function startsWithWindowsDriveLetter(input: string, cursor: number): boolean {
+function startsWithWindowsDriveLetter(input: string): boolean {
   // its length is greater than or equal to 2
-  const length = input.length - cursor;
+  const length = input.length;
   if (!(length >= 2)) {
     return false;
   }
   // its first two code points are a Windows drive letter
-  if (!isWindowsDriveLetter(input.substr(cursor, 2))) {
+  if (!isWindowsDriveLetter(input.substr(0, 2))) {
     return false;
   }
   // its length is 2 or its third code point is U+002F (/), U+005C (\), U+003F (?), or U+0023 (#).
   if (length !== 2) {
-    const c = input[cursor + 2];
+    const c = input[2];
     if (!('/' === c || '\\' === c || '?' === c || '#' === c)) {
       return false;
     }
@@ -158,14 +158,17 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   let seenBracket = false;
   let passwordTokenSeenFlag = false;
   // 10. Let pointer be a pointer to first code point in input.
+  const codePoints = ucs2decode(input);
+  const length = codePoints.length;
   let cursor = 0;
-  const length = input.length;
 
   // 11. Keep running the following state machine by switching on state.
   //     If after a run pointer points to the EOF code point, go to the next step.
   //     Otherwise, increase pointer by one and continue with the state machine.
   while (cursor <= length) {
-    const c = cursor < length ? input[cursor] : EOF;
+    // TODO Optimize by replacing 'c' with 'codePoint'
+    const codePoint = cursor < length ? codePoints[cursor] : EOF;
+    const c = cursor < length ? ucs2encode([codePoint!]) : EOF;
     switch (state) {
       case ParserState.SCHEME_START:
         // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
@@ -241,7 +244,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           }
           // 8. Otherwise, if remaining starts with an U+002F (/),
           // set state to path or authority state and increase pointer by one.
-          else if ('/' === input[cursor + 1]) {
+          else if (0x2F === codePoints[cursor + 1]) {
             state = ParserState.PATH_OR_AUTHORITY;
             cursor += 1;
           }
@@ -303,7 +306,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SPECIAL_RELATIVE_OR_AUTHORITY:
         // If c is U+002F (/) and remaining starts with U+002F (/),
         // then set state to special authority ignore slashes state and increase pointer by one.
-        if ('/' === c && '/' === input[cursor + 1]) {
+        if (0x2F === codePoint && 0x2F === codePoints[cursor + 1]) {
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
         }
         // Otherwise, validation error, set state to relative state and decrease pointer by one.
@@ -433,7 +436,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SPECIAL_AUTHORITY_SLASHES:
         // If c is U+002F (/) and remaining starts with U+002F (/),
         // then set state to special authority ignore slashes state and increase pointer by one.
-        if ('/' === c && '/' === input[cursor + 1]) {
+        if (0x2F === codePoint && 0x2F === codePoints[cursor + 1]) {
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
           cursor += 1;
         }
@@ -672,7 +675,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             // then set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // and then shorten url’s path.
-            if (!startsWithWindowsDriveLetter(input, cursor)) {
+            if (!startsWithWindowsDriveLetter(ucs2encode(codePoints.slice(cursor)))) {
               url._host = base!._host;
               url._path = base!._path.slice();
               shortenPath(url);
@@ -702,7 +705,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. If base is non-null, base’s scheme is "file",
           // and the substring from pointer in input does not start with a Windows drive letter,
           // then:
-          if (base && 'file' === base._scheme && !startsWithWindowsDriveLetter(input, cursor)) {
+          if (base && 'file' === base._scheme && !startsWithWindowsDriveLetter(ucs2encode(codePoints.slice(cursor)))) {
             // 1. If base’s path[0] is a normalized Windows drive letter, then append base’s path[0] to url’s path.
             if (isNormalizedWindowsDriveLetter(base._path[0])) {
               url._path.push(base._path[0]);
@@ -873,7 +876,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    validation error.
           // 3. UTF-8 percent encode c using the path percent-encode set,
           //    and append the result to buffer.
-          buffer += utf8PercentEncode(c.charCodeAt(0), isPathPercentEncode);
+          buffer += utf8PercentEncode(codePoint!, isPathPercentEncode);
         }
         break;
 
@@ -897,7 +900,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    UTF-8 percent encode c using the C0 control percent-encode set,
           //    and append the result to url’s path[0].
           if (EOF !== c) {
-            url._path[0] += utf8PercentEncode(c.charCodeAt(0), isC0ControlPercentEncode);
+            url._path[0] += utf8PercentEncode(codePoint!, isC0ControlPercentEncode);
           }
         }
         break;
@@ -953,7 +956,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. UTF-8 percent encode c using the fragment percent-encode set and append the result to url’s fragment.
-          url._fragment += utf8PercentEncode(c.charCodeAt(0), isFragmentPercentEncode);
+          url._fragment += utf8PercentEncode(codePoint!, isFragmentPercentEncode);
         }
         break;
     }
