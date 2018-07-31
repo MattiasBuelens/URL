@@ -89,6 +89,11 @@ export function isQueryPercentEncode(code: number): boolean {
       || (code === 0x3E); // 0x3E (>)
 }
 
+export function isQueryPercentEncodeSpecial(code: number): boolean {
+  return isQueryPercentEncode(code)
+      || (code === 0x27); // 0x27 (')
+}
+
 // https://url.spec.whatwg.org/#utf-8-percent-encode
 export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: number) => boolean): string {
   // 1. If codePoint is not in percentEncodeSet, then return codePoint.

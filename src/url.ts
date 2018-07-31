@@ -6,6 +6,7 @@ import {
   isFragmentPercentEncode,
   isPathPercentEncode,
   isQueryPercentEncode,
+  isQueryPercentEncodeSpecial,
   isUserinfoPercentEncode,
   utf8PercentEncode,
   utf8PercentEncodeString
@@ -902,30 +903,40 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         break;
 
       case ParserState.QUERY:
-        // 1. If c is the EOF code point, or state override is not given and c is U+0023 (#), then:
-        if (EOF === c || (stateOverride === null && '#' === c)) {
-          // 1. If url is not special or url’s scheme is either "ws" or "wss", set encoding to UTF-8.
-          // 2. Set buffer to the result of encoding buffer using encoding.
-          // TODO encoding
-          // 3.  For each byte in buffer:
-          // 3.1. If byte is less than 0x21 (!), greater than 0x7E (~), or is 0x22 ("), 0x23 (#), 0x3C (<), or 0x3E (>), append byte, percent encoded, to url’s query.
-          // 3.2. Otherwise, append a code point whose value is byte to url’s query.
-          url._query += utf8PercentEncodeString(buffer, isQueryPercentEncode);
-          // 4. Set buffer to the empty string.
-          buffer = '';
-          // 5. If c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
-          if ('#' === c) {
-            url._fragment = '';
-            state = ParserState.FRAGMENT;
-          }
+        // 1. If encoding is not UTF-8 and one of the following is true
+        //     - url is not special
+        //     - url’s scheme is "ws" or "wss"
+        //    then set encoding to UTF-8.
+        // TODO encoding
+        // 2. If state override is not given and c is U+0023 (#),
+        //    then set url’s fragment to the empty string and state to fragment state.
+        if (stateOverride === null && '#' === c) {
+          url._fragment = '';
+          state = ParserState.FRAGMENT;
         }
-        // 2. Otherwise:
-        else {
+        // 3. Otherwise, if c is not the EOF code point:
+        else if (EOF !== c) {
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
-          // 3. Append c to buffer.
-          buffer += c;
+
+          // 3. Let bytes be the result of encoding c using encoding.
+          // 4. If bytes starts with `&#` and ends with 0x3B (;), then:
+          // TODO encoding
+          // Note: This cannot happen, since in our case we always use UTF-8 encoding.
+
+          // 5. Otherwise, for each byte in bytes:
+          // 5.1. If one of the following is true
+          //      - byte is less than 0x21 (!)
+          //      - byte is greater than 0x7E (~)
+          //      - byte is 0x22 ("), 0x23 (#), 0x3C (<), or 0x3E (>)
+          //      - byte is 0x27 (') and url is special
+          //      then append byte, percent encoded, to url’s query.
+          // 5.2. Otherwise, append a code point whose value is byte to url’s query.
+          url._query += utf8PercentEncodeString(
+              c,
+              isSpecial(url) ? isQueryPercentEncodeSpecial : isQueryPercentEncode
+          );
         }
         break;
 
