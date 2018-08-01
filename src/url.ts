@@ -333,6 +333,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         url._scheme = base!._scheme;
         // and then, switching on c:
         if (EOF === c) {
+          // The EOF code point
           // Set url’s username to base’s username,
           // url’s password to base’s password,
           // url’s host to base’s host,
@@ -346,9 +347,11 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           url._path = base!._path.slice();
           url._query = base!._query;
         } else if ('/' === c) {
+          // U+002F (/)
           // Set state to relative slash state.
           state = ParserState.RELATIVE_SLASH;
         } else if ('?' === c) {
+          // U+003F (?)
           // Set url’s username to base’s username,
           // url’s password to base’s password,
           // url’s host to base’s host,
@@ -364,6 +367,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           url._query = '';
           state = ParserState.QUERY;
         } else if ('#' === c) {
+          // U+0023 (#)
           // Set url’s username to base’s username,
           // url’s password to base’s password,
           // url’s host to base’s host,
@@ -381,6 +385,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           url._fragment = '';
           state = ParserState.FRAGMENT;
         } else {
+          // Otherwise
           // If url is special and c is U+005C (\), validation error,
           // set state to relative slash state.
           if ('\\' === c && isSpecial(url)) {
@@ -644,6 +649,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 3. Otherwise, if base is non-null and base’s scheme is "file", switch on c:
         else if (base && base._scheme === 'file') {
           if (EOF === c) {
+            // The EOF code point
             // Set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // and url’s query to base’s query.
@@ -651,6 +657,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             url._path = base!._path.slice();
             url._query = base!._query;
           } else if ('?' === c) {
+            // U+003F (?)
             // Set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // url’s query to the empty string,
@@ -660,6 +667,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             url._query = '';
             state = ParserState.QUERY;
           } else if ('#' === c) {
+            // U+0023 (#)
             // Set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // url’s query to base’s query,
@@ -671,6 +679,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             url._fragment = '';
             state = ParserState.FRAGMENT;
           } else {
+            // Otherwise
             // 1. If the substring from pointer in input does not start with a Windows drive letter,
             // then set url’s host to base’s host,
             // url’s path to a copy of base’s path,
@@ -946,12 +955,15 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.FRAGMENT:
         // Switching on c:
         if (EOF === c) {
+          // The EOF code point
           // Do nothing
         }
         else if ('\0' === c) {
+          // U+0000 NULL
           // Validation error.
         }
         else {
+          // Otherwise
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
