@@ -50,33 +50,43 @@ function includesCredentials(url: UrlRecord): boolean {
   return url._username !== '' || url._password !== '';
 }
 
-function startsWithWindowsDriveLetter(input: string): boolean {
+// https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
+function startsWithWindowsDriveLetter(input: number[]): boolean {
   // its length is greater than or equal to 2
   const length = input.length;
   if (!(length >= 2)) {
     return false;
   }
   // its first two code points are a Windows drive letter
-  if (!isWindowsDriveLetter(input.substr(0, 2))) {
+  if (!isWindowsDriveLetterRaw(input.slice(0, 2))) {
     return false;
   }
   // its length is 2 or its third code point is U+002F (/), U+005C (\), U+003F (?), or U+0023 (#).
   if (length !== 2) {
     const c = input[2];
-    if (!('/' === c || '\\' === c || '?' === c || '#' === c)) {
+    if (!(0x2F === c || 0x5C === c || 0x3F === c || 0x23 === c)) {
       return false;
     }
   }
   return true;
 }
 
+// https://url.spec.whatwg.org/#windows-drive-letter
 function isWindowsDriveLetter(input: string): boolean {
+  // A Windows drive letter is two code points, of which the first is an ASCII alpha
+  // and the second is either U+003A (:) or U+007C (|).
   return input.length === 2
       && ALPHA.test(input[0])
       && (':' === input[1] || '|' === input[1]);
 }
 
+function isWindowsDriveLetterRaw(input: number[]): boolean {
+  return input.length === 2 && isWindowsDriveLetter(ucs2encode(input));
+}
+
+// https://url.spec.whatwg.org/#normalized-windows-drive-letter
 function isNormalizedWindowsDriveLetter(input: string): boolean {
+  // A normalized Windows drive letter is a Windows drive letter of which the second code point is U+003A (:).
   return isWindowsDriveLetter(input)
       && (':' === input[1]);
 }
@@ -683,7 +693,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             // then set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // and then shorten url’s path.
-            if (!startsWithWindowsDriveLetter(ucs2encode(codePoints.slice(cursor)))) {
+            if (!startsWithWindowsDriveLetter(codePoints.slice(cursor))) {
               url._host = base!._host;
               url._path = base!._path.slice();
               shortenPath(url);
@@ -713,7 +723,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. If base is non-null, base’s scheme is "file",
           // and the substring from pointer in input does not start with a Windows drive letter,
           // then:
-          if (base && 'file' === base._scheme && !startsWithWindowsDriveLetter(ucs2encode(codePoints.slice(cursor)))) {
+          if (base && 'file' === base._scheme && !startsWithWindowsDriveLetter(codePoints.slice(cursor))) {
             // 1. If base’s path[0] is a normalized Windows drive letter, then append base’s path[0] to url’s path.
             if (isNormalizedWindowsDriveLetter(base._path[0])) {
               url._path.push(base._path[0]);
@@ -736,7 +746,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           cursor -= 1;
           // 1. If state override is not given and buffer is a Windows drive letter,
           //    validation error, set state to path state.
-          if (stateOverride === null && isWindowsDriveLetter(ucs2encode(buffer))) {
+          if (stateOverride === null && isWindowsDriveLetterRaw(buffer)) {
             state = ParserState.PATH;
           }
           // 2. Otherwise, if buffer is the empty string, then:
@@ -844,7 +854,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 4. Otherwise, if buffer is not a single-dot path segment, then:
           else if (!isSingleDotPathSegment(bufferString)) {
             // 1. If url’s scheme is "file", url’s path is empty, and buffer is a Windows drive letter, then:
-            if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetter(bufferString)) {
+            if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetterRaw(buffer)) {
               // 1. If url’s host is neither the empty string nor null,
               //    validation error, set url’s host to the empty string.
               if (EMPTY_HOST !== url._host && null !== url._host) {
