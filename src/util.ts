@@ -88,6 +88,15 @@ export function parseHexDigit(codePoint: number): number {
   return -1;
 }
 
+export function toHexDigit(digit: number, lower: boolean = false): number {
+  if (0x0 <= digit && digit <= 0x9) {
+    return digit + 0x30;
+  } else if (0xA <= digit && digit <= 0xF) {
+    return digit + (lower ? (0x61 - 0xA) : (0x41 - 0xA));
+  }
+  return -1;
+}
+
 export function replaceArray<T>(dest: T[], src: T[]): void {
   for (let i = 0; i < src.length; i++) {
     dest[i] = src[i];

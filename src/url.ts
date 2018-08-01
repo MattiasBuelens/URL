@@ -483,7 +483,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
             // 2. Let encodedCodePoints be the result of running UTF-8 percent encode codePoint
             //    using the userinfo percent-encode set.
-            const encodedCodePoints = utf8PercentEncode(codePoint, isUserinfoPercentEncode);
+            const encodedCodePoints = ucs2encode(utf8PercentEncode(codePoint, isUserinfoPercentEncode));
             // 3. If passwordTokenSeenFlag is set, then append encodedCodePoints to url’s password.
             if (passwordTokenSeenFlag) {
               url._password += encodedCodePoints;
@@ -886,7 +886,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    validation error.
           // 3. UTF-8 percent encode c using the path percent-encode set,
           //    and append the result to buffer.
-          buffer.push(...ucs2decode(utf8PercentEncode(c!, isPathPercentEncode)));
+          buffer.push(...utf8PercentEncode(c, isPathPercentEncode));
         }
         break;
 
@@ -910,7 +910,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    UTF-8 percent encode c using the C0 control percent-encode set,
           //    and append the result to url’s path[0].
           if (EOF !== c) {
-            url._path[0] += utf8PercentEncode(c!, isC0ControlPercentEncode);
+            url._path[0] += ucs2encode(utf8PercentEncode(c, isC0ControlPercentEncode));
           }
         }
         break;
@@ -946,10 +946,10 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //      - byte is 0x27 (') and url is special
           //      then append byte, percent encoded, to url’s query.
           // 5.2. Otherwise, append a code point whose value is byte to url’s query.
-          url._query += utf8PercentEncode(
+          url._query += ucs2encode(utf8PercentEncode(
               c,
               isSpecial(url) ? isQueryPercentEncodeSpecial : isQueryPercentEncode
-          );
+          ));
         }
         break;
 
@@ -969,7 +969,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. UTF-8 percent encode c using the fragment percent-encode set and append the result to url’s fragment.
-          url._fragment += utf8PercentEncode(c!, isFragmentPercentEncode);
+          url._fragment += ucs2encode(utf8PercentEncode(c, isFragmentPercentEncode));
         }
         break;
     }
