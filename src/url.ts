@@ -13,7 +13,7 @@ import {
 } from "./encode";
 import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
-import { ALPHA, ALPHANUMERIC, DIGIT } from "./util";
+import { ALPHA, fromCodeUnits, isAlpha, isAlphanumeric, isDigit, toAsciiLowercase } from "./util";
 import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 import { OPAQUE_ORIGIN, serializeTupleOrigin } from "./origin";
 import { toUSVString } from "./usvstring";
@@ -50,33 +50,43 @@ function includesCredentials(url: UrlRecord): boolean {
   return url._username !== '' || url._password !== '';
 }
 
-function startsWithWindowsDriveLetter(input: string): boolean {
+// https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
+function startsWithWindowsDriveLetter(input: number[]): boolean {
   // its length is greater than or equal to 2
   const length = input.length;
   if (!(length >= 2)) {
     return false;
   }
   // its first two code points are a Windows drive letter
-  if (!isWindowsDriveLetter(input.substr(0, 2))) {
+  if (!isWindowsDriveLetterRaw(input.slice(0, 2))) {
     return false;
   }
   // its length is 2 or its third code point is U+002F (/), U+005C (\), U+003F (?), or U+0023 (#).
   if (length !== 2) {
     const c = input[2];
-    if (!('/' === c || '\\' === c || '?' === c || '#' === c)) {
+    if (!(0x2F === c || 0x5C === c || 0x3F === c || 0x23 === c)) {
       return false;
     }
   }
   return true;
 }
 
+// https://url.spec.whatwg.org/#windows-drive-letter
 function isWindowsDriveLetter(input: string): boolean {
+  // A Windows drive letter is two code points, of which the first is an ASCII alpha
+  // and the second is either U+003A (:) or U+007C (|).
   return input.length === 2
       && ALPHA.test(input[0])
       && (':' === input[1] || '|' === input[1]);
 }
 
+function isWindowsDriveLetterRaw(input: number[]): boolean {
+  return input.length === 2 && isWindowsDriveLetter(fromCodeUnits(input));
+}
+
+// https://url.spec.whatwg.org/#normalized-windows-drive-letter
 function isNormalizedWindowsDriveLetter(input: string): boolean {
+  // A normalized Windows drive letter is a Windows drive letter of which the second code point is U+003A (:).
   return isWindowsDriveLetter(input)
       && (':' === input[1]);
 }
@@ -102,7 +112,7 @@ function cannotHaveUsernamePasswordPort(url: UrlRecord): boolean {
       'file' === url._scheme;
 }
 
-const EOF = undefined;
+const EOF = -1;
 const TAB_OR_NEWLINE = /\t|\n|\r/g;
 const LEADING_OR_TRAILING_C0_CONTROL_OR_SPACE = /^[\x00-\x1f ]+|[\x00-\x1f ]+$/g;
 
@@ -152,7 +162,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   // 7. If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
   // TODO encoding
   // 8. Let buffer be the empty string.
-  let buffer = '';
+  let buffer: number[] = [];
   // 9. Let the @ flag, [] flag, and passwordTokenSeenFlag be unset.
   let seenAt = false;
   let seenBracket = false;
@@ -166,19 +176,17 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   //     If after a run pointer points to the EOF code point, go to the next step.
   //     Otherwise, increase pointer by one and continue with the state machine.
   while (cursor <= length) {
-    // TODO Optimize by replacing 'c' with 'codePoint'
-    const codePoint = cursor < length ? codePoints[cursor] : EOF;
-    const c = cursor < length ? ucs2encode([codePoint!]) : EOF;
+    const c = cursor < length ? codePoints[cursor] : EOF;
     switch (state) {
       case ParserState.SCHEME_START:
         // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
-        if (EOF !== c && ALPHA.test(c)) {
-          buffer += c.toLowerCase(); // ASCII-safe
+        if (isAlpha(c)) {
+          buffer.push(toAsciiLowercase(c)); // ASCII-safe
           state = ParserState.SCHEME;
         }
         // 2. Otherwise, if state override is not given, set state to no scheme state, and decrease pointer by one.
         else if (stateOverride === null) {
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.NO_SCHEME;
           continue;
         }
@@ -190,23 +198,24 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.SCHEME:
         // 1. If c is an ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.), append c, lowercased, to buffer.
-        if (EOF !== c && ALPHANUMERIC.test(c)) {
-          buffer += c.toLowerCase(); // ASCII-safe
+        if (isAlphanumeric(c) || 0x2B === c || 0x2D === c || 0x2E === c) {
+          buffer.push(toAsciiLowercase(c)); // ASCII-safe
         }
         // 2. Otherwise, if c is U+003A (:), then:
-        else if (':' === c) {
+        else if (0x3A === c) {
+          const bufferString = ucs2encode(buffer);
           // 1. If state override is given, then:
           if (stateOverride !== null) {
             // 1. If url’s scheme is a special scheme and buffer is not a special scheme, then return.
-            if (isSpecialScheme(url._scheme) && !isSpecialScheme(buffer)) {
+            if (isSpecialScheme(url._scheme) && !isSpecialScheme(bufferString)) {
               return;
             }
             // 2. If url’s scheme is not a special scheme and buffer is a special scheme, then return.
-            if (!isSpecialScheme(url._scheme) && isSpecialScheme(buffer)) {
+            if (!isSpecialScheme(url._scheme) && isSpecialScheme(bufferString)) {
               return;
             }
             // 3. If url includes credentials or has a non-null port, and buffer is "file", then return.
-            if ((includesCredentials(url) || url._port !== null) && 'file' === buffer) {
+            if ((includesCredentials(url) || url._port !== null) && 'file' === bufferString) {
               return;
             }
             // 4. If url’s scheme is "file" and its host is an empty host or null, then return.
@@ -215,7 +224,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
           }
           // 2. Set url’s scheme to buffer.
-          url._scheme = buffer;
+          url._scheme = bufferString;
           // 3. If state override is given, then:
           if (stateOverride !== null) {
             // 1. If url’s port is url’s scheme’s default port, then set url’s port to null.
@@ -226,7 +235,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             return;
           }
           // 4. Set buffer to the empty string.
-          buffer = '';
+          buffer.length = 0;
           // 5. If url’s scheme is "file", then:
           if ('file' === url._scheme) {
             // 1. If remaining does not start with "//", validation error.
@@ -261,7 +270,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // set buffer to the empty string, state to no scheme state,
         // and start over (from the first code point in input).
         else if (stateOverride === null) {
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.NO_SCHEME;
           cursor = 0;
           continue;
@@ -275,14 +284,14 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.NO_SCHEME:
         // 1. If base is null, or base’s cannot-be-a-base-URL flag is set
         //    and c is not U+0023 (#), validation error, return failure.
-        if (!base || (base._cannotBeABaseURL && '#' !== c)) {
+        if (!base || (base._cannotBeABaseURL && 0x23 !== c)) {
           throw new TypeError('Invalid scheme');
         }
         // 2. Otherwise, if base’s cannot-be-a-base-URL flag is set and c is U+0023 (#),
         //    set url’s scheme to base’s scheme, url’s path to a copy of base’s path,
         //    url’s query to base’s query, url’s fragment to the empty string,
         //    set url’s cannot-be-a-base-URL flag, and set state to fragment state.
-        else if (base._cannotBeABaseURL && '#' === c) {
+        else if (base._cannotBeABaseURL && 0x23 === c) {
           url._scheme = base._scheme;
           url._path = base._path.slice();
           url._query = base._query;
@@ -306,7 +315,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SPECIAL_RELATIVE_OR_AUTHORITY:
         // If c is U+002F (/) and remaining starts with U+002F (/),
         // then set state to special authority ignore slashes state and increase pointer by one.
-        if (0x2F === codePoint && 0x2F === codePoints[cursor + 1]) {
+        if (0x2F === c && 0x2F === codePoints[cursor + 1]) {
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
         }
         // Otherwise, validation error, set state to relative state and decrease pointer by one.
@@ -318,7 +327,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.PATH_OR_AUTHORITY:
         // If c is U+002F (/), then set state to authority state.
-        if ('/' === c) {
+        if (0x2F === c) {
           state = ParserState.AUTHORITY;
         }
         // Otherwise, set state to path state, and decrease pointer by one.
@@ -333,6 +342,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         url._scheme = base!._scheme;
         // and then, switching on c:
         if (EOF === c) {
+          // The EOF code point
           // Set url’s username to base’s username,
           // url’s password to base’s password,
           // url’s host to base’s host,
@@ -345,10 +355,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           url._port = base!._port;
           url._path = base!._path.slice();
           url._query = base!._query;
-        } else if ('/' === c) {
+        } else if (0x2F === c) {
+          // U+002F (/)
           // Set state to relative slash state.
           state = ParserState.RELATIVE_SLASH;
-        } else if ('?' === c) {
+        } else if (0x3F === c) {
+          // U+003F (?)
           // Set url’s username to base’s username,
           // url’s password to base’s password,
           // url’s host to base’s host,
@@ -363,7 +375,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           url._path = base!._path.slice();
           url._query = '';
           state = ParserState.QUERY;
-        } else if ('#' === c) {
+        } else if (0x23 === c) {
+          // U+0023 (#)
           // Set url’s username to base’s username,
           // url’s password to base’s password,
           // url’s host to base’s host,
@@ -381,9 +394,10 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           url._fragment = '';
           state = ParserState.FRAGMENT;
         } else {
+          // Otherwise
           // If url is special and c is U+005C (\), validation error,
           // set state to relative slash state.
-          if ('\\' === c && isSpecial(url)) {
+          if (0x5C === c && isSpecial(url)) {
             state = ParserState.RELATIVE_SLASH;
           }
           // Otherwise, run these steps:
@@ -409,13 +423,13 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.RELATIVE_SLASH:
         // 1. If url is special and c is U+002F (/) or U+005C (\), then:
-        if (isSpecial(url) && ('/' === c || '\\' === c)) {
+        if (isSpecial(url) && (0x2F === c || 0x5C === c)) {
           // 1. If c is U+005C (\), validation error.
           // 2. Set state to special authority ignore slashes state.
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
         }
         // Otherwise, if c is U+002F (/), then set state to authority state.
-        else if ('/' === c) {
+        else if (0x2F === c) {
           state = ParserState.AUTHORITY;
           // Otherwise, set url’s username to base’s username,
           // url’s password to base’s password,
@@ -436,7 +450,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SPECIAL_AUTHORITY_SLASHES:
         // If c is U+002F (/) and remaining starts with U+002F (/),
         // then set state to special authority ignore slashes state and increase pointer by one.
-        if (0x2F === codePoint && 0x2F === codePoints[cursor + 1]) {
+        if (0x2F === c && 0x2F === codePoints[cursor + 1]) {
           state = ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES;
           cursor += 1;
         }
@@ -452,7 +466,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SPECIAL_AUTHORITY_IGNORE_SLASHES:
         // If c is neither U+002F (/) nor U+005C (\),
         // then set state to authority state and decrease pointer by one.
-        if ('/' !== c && '\\' !== c) {
+        if (0x2F !== c && 0x5C !== c) {
           state = ParserState.AUTHORITY;
           cursor -= 1;
         }
@@ -461,16 +475,16 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.AUTHORITY:
         // 1. If c is U+0040 (@), then:
-        if ('@' === c) {
+        if (0x40 === c) {
           // 1. Validation error.
           // 2. If the @ flag is set, prepend "%40" to buffer.
           if (seenAt) {
-            buffer = '%40' + buffer;
+            buffer.unshift(0x25, 0x34, 0x30);
           }
           // 3. Set the @ flag.
           seenAt = true;
           // 4. For each codePoint in buffer:
-          for (let codePoint of ucs2decode(buffer)) {
+          for (let codePoint of buffer) {
             // 1. If codePoint is U+003A (:) and passwordTokenSeenFlag is unset,
             //    then set passwordTokenSeenFlag and continue.
             if (0x3A === codePoint && !passwordTokenSeenFlag) {
@@ -479,7 +493,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
             // 2. Let encodedCodePoints be the result of running UTF-8 percent encode codePoint
             //    using the userinfo percent-encode set.
-            const encodedCodePoints = utf8PercentEncode(codePoint, isUserinfoPercentEncode);
+            const encodedCodePoints = ucs2encode(utf8PercentEncode(codePoint, isUserinfoPercentEncode));
             // 3. If passwordTokenSeenFlag is set, then append encodedCodePoints to url’s password.
             if (passwordTokenSeenFlag) {
               url._password += encodedCodePoints;
@@ -490,30 +504,30 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
           }
           // 5. Set buffer to the empty string.
-          buffer = '';
+          buffer.length = 0;
         }
         // 2. Otherwise, if one of the following is true:
         //    - c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
         //    - url is special and c is U+005C (\)
         else if (
-            (EOF === c || '/' === c || '?' === c || '#' === c) ||
-            (isSpecial(url) && ('\\' === c))
+            (EOF === c || 0x2F === c || 0x3F === c || 0x23 === c) ||
+            (isSpecial(url) && (0x5C === c))
         ) {
           // then:
           // 1. If @ flag is set and buffer is the empty string, validation error, return failure.
-          if (seenAt && '' === buffer) {
+          if (seenAt && 0 === buffer.length) {
             // e.g. http://user@/foo
             throw new TypeError('Invalid host');
           }
           // 2. Decrease pointer by the number of code points in buffer plus one,
           //    set buffer to the empty string, and set state to host state.
           cursor -= buffer.length + 1;
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.HOST;
         }
         // 3. Otherwise, append c to buffer.
         else {
-          buffer += c;
+          buffer.push(c);
         }
         break;
 
@@ -526,17 +540,17 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           state = ParserState.FILE_HOST;
         }
         // 2. Otherwise, if c is U+003A (:) and the [] flag is unset, then:
-        else if (':' === c && !seenBracket) {
+        else if (0x3A === c && !seenBracket) {
           // 1. If buffer is the empty string, validation error, return failure.
-          if ('' === buffer) {
+          if (0 === buffer.length) {
             throw new TypeError('Invalid host');
           }
           // 2. Let host be the result of host parsing buffer with url is special.
           // 3. If host is failure, then return failure.
-          const host = parseHost(buffer, isSpecial(url));
+          const host = parseHost(ucs2encode(buffer), isSpecial(url));
           // 4. Set url’s host to host, buffer to the empty string, and state to port state.
           url._host = host;
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.PORT;
           // 5. If state override is given and state override is hostname state, then return.
           if (stateOverride === ParserState.HOSTNAME) {
@@ -547,27 +561,27 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         //    - c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
         //    - url is special and c is U+005C (\)
         else if (
-            (EOF === c || '/' === c || '?' === c || '#' === c) ||
-            (isSpecial(url) && ('\\' === c))
+            (EOF === c || 0x2F === c || 0x3F === c || 0x23 === c) ||
+            (isSpecial(url) && (0x5C === c))
         ) {
           // then decrease pointer by one, and then:
           cursor -= 1;
           // 1. If url is special and buffer is the empty string, validation error, return failure.
-          if (isSpecial(url) && '' === buffer) {
+          if (isSpecial(url) && 0 === buffer.length) {
             throw new TypeError('Invalid host');
           }
           // 2. Otherwise, if state override is given, buffer is the empty string,
           //    and either url includes credentials or url’s port is non-null,
           //    validation error, return.
-          if (stateOverride !== null && '' === buffer && (includesCredentials(url) || url._port !== null)) {
+          if (stateOverride !== null && 0 === buffer.length && (includesCredentials(url) || url._port !== null)) {
             return;
           }
           // 3. Let host be the result of host parsing buffer with url is special.
           // 4. If host is failure, then return failure.
-          const host = parseHost(buffer, isSpecial(url));
+          const host = parseHost(ucs2encode(buffer), isSpecial(url));
           // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
           url._host = host;
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.PATH_START;
           // 6. If state override is given, then return.
           if (stateOverride !== null) {
@@ -577,38 +591,38 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 4. Otherwise:
         else {
           // 1. If c is U+005B ([), then set the [] flag.
-          if ('[' === c) {
+          if (0x5B === c) {
             seenBracket = true;
           }
           // 2. If c is U+005D (]), then unset the [] flag.
-          else if (']' === c) {
+          else if (0x5D === c) {
             seenBracket = false;
           }
           // 3. Append c to buffer.
-          buffer += c;
+          buffer.push(c);
         }
         break;
 
       case ParserState.PORT:
         // 1. If c is an ASCII digit, append c to buffer.
-        if (EOF !== c && DIGIT.test(c)) {
-          buffer += c;
+        if (isDigit(c)) {
+          buffer.push(c);
         }
         // 2. Otherwise, if one of the following is true:
         //    - c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
         //    - url is special and c is U+005C (\)
         //    - state override is given
         else if (
-            (EOF === c || '/' === c || '?' === c || '#' === c) ||
-            (isSpecial(url) && ('\\' === c)) ||
+            (EOF === c || 0x2F === c || 0x3F === c || 0x23 === c) ||
+            (isSpecial(url) && (0x5C === c)) ||
             (stateOverride !== null)
         ) {
           // then:
           // 1. If buffer is not the empty string, then:
-          if ('' !== buffer) {
+          if (0 !== buffer.length) {
             // 1. Let port be the mathematical integer value that is represented
             //    by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
-            const port = parseInt(buffer, 10);
+            const port = parseInt(ucs2encode(buffer), 10);
             // 2. If port is greater than 2^16 − 1, validation error, return failure.
             if (port > (1 << 16) - 1) {
               throw new TypeError('Invalid port');
@@ -616,7 +630,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             // 3. Set url’s port to null, if port is url’s scheme’s default port, and to port otherwise.
             url._port = (port === defaultPorts[url._scheme]) ? null : port;
             // 4. Set buffer to the empty string.
-            buffer = '';
+            buffer.length = 0;
           }
           // 2. If state override is given, then return.
           if (stateOverride !== null) {
@@ -636,7 +650,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 1. Set url’s scheme to "file".
         url._scheme = 'file';
         // 2. If c is U+002F (/) or U+005C (\), then:
-        if ('/' === c || '\\' === c) {
+        if (0x2F === c || 0x5C === c) {
           // 1. If c is U+005C (\), validation error.
           // 2. Set state to file slash state.
           state = ParserState.FILE_SLASH;
@@ -644,13 +658,15 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 3. Otherwise, if base is non-null and base’s scheme is "file", switch on c:
         else if (base && base._scheme === 'file') {
           if (EOF === c) {
+            // The EOF code point
             // Set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // and url’s query to base’s query.
             url._host = base!._host;
             url._path = base!._path.slice();
             url._query = base!._query;
-          } else if ('?' === c) {
+          } else if (0x3F === c) {
+            // U+003F (?)
             // Set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // url’s query to the empty string,
@@ -659,7 +675,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             url._path = base!._path.slice();
             url._query = '';
             state = ParserState.QUERY;
-          } else if ('#' === c) {
+          } else if (0x23 === c) {
+            // U+0023 (#)
             // Set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // url’s query to base’s query,
@@ -671,11 +688,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             url._fragment = '';
             state = ParserState.FRAGMENT;
           } else {
+            // Otherwise
             // 1. If the substring from pointer in input does not start with a Windows drive letter,
             // then set url’s host to base’s host,
             // url’s path to a copy of base’s path,
             // and then shorten url’s path.
-            if (!startsWithWindowsDriveLetter(ucs2encode(codePoints.slice(cursor)))) {
+            if (!startsWithWindowsDriveLetter(codePoints.slice(cursor))) {
               url._host = base!._host;
               url._path = base!._path.slice();
               shortenPath(url);
@@ -695,7 +713,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
 
       case ParserState.FILE_SLASH:
         // 1. If c is U+002F (/) or U+005C (\), then:
-        if ('/' === c || '\\' === c) {
+        if (0x2F === c || 0x5C === c) {
           // 1. If c is U+005C (\), validation error.
           // 2. Set state to file host state.
           state = ParserState.FILE_HOST;
@@ -705,7 +723,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. If base is non-null, base’s scheme is "file",
           // and the substring from pointer in input does not start with a Windows drive letter,
           // then:
-          if (base && 'file' === base._scheme && !startsWithWindowsDriveLetter(ucs2encode(codePoints.slice(cursor)))) {
+          if (base && 'file' === base._scheme && !startsWithWindowsDriveLetter(codePoints.slice(cursor))) {
             // 1. If base’s path[0] is a normalized Windows drive letter, then append base’s path[0] to url’s path.
             if (isNormalizedWindowsDriveLetter(base._path[0])) {
               url._path.push(base._path[0]);
@@ -724,15 +742,15 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.FILE_HOST:
         // 1. If c is the EOF code point, U+002F (/), U+005C (\), U+003F (?), or U+0023 (#),
         // then decrease pointer by one and then:
-        if (EOF === c || '/' === c || '\\' === c || '?' === c || '#' === c) {
+        if (EOF === c || 0x2F === c || 0x5C === c || 0x3F === c || 0x23 === c) {
           cursor -= 1;
           // 1. If state override is not given and buffer is a Windows drive letter,
           //    validation error, set state to path state.
-          if (stateOverride === null && isWindowsDriveLetter(buffer)) {
+          if (stateOverride === null && isWindowsDriveLetterRaw(buffer)) {
             state = ParserState.PATH;
           }
           // 2. Otherwise, if buffer is the empty string, then:
-          else if (buffer === '') {
+          else if (0 === buffer.length) {
             // 1. Set url’s host to the empty string.
             url._host = EMPTY_HOST;
             // 2. If state override is given, then return.
@@ -746,7 +764,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           else {
             // 1. Let host be the result of host parsing buffer with url is special.
             // 2. If host is failure, then return failure.
-            let host = parseHost(buffer, isSpecial(url));
+            let host = parseHost(ucs2encode(buffer), isSpecial(url));
             // 3. If host is "localhost", then set host to the empty string.
             if (host._type === HostType.DOMAIN && 'localhost' === host._domain) {
               host = EMPTY_HOST;
@@ -758,13 +776,13 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               return;
             }
             // 6. Set buffer to the empty string and state to path start state.
-            buffer = '';
+            buffer.length = 0;
             state = ParserState.PATH_START;
           }
         }
         // 2. Otherwise, append c to buffer.
         else {
-          buffer += c;
+          buffer.push(c);
         }
         break;
 
@@ -775,19 +793,19 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 2. Set state to path state.
           state = ParserState.PATH;
           // 3. If c is neither U+002F (/) nor U+005C (\), then decrease pointer by one.
-          if ('/' !== c && '\\' !== c) {
+          if (0x2F !== c && 0x5C !== c) {
             cursor -= 1;
           }
         }
         // 2. Otherwise, if state override is not given and c is U+003F (?),
         //    set url’s query to the empty string and state to query state.
-        else if (stateOverride === null && '?' === c) {
+        else if (stateOverride === null && 0x3F === c) {
           url._query = '';
           state = ParserState.QUERY;
         }
         // 3. Otherwise, if state override is not given and c is U+0023 (#),
         //    set url’s fragment to the empty string and state to fragment state.
-        else if (stateOverride === null && '#' === c) {
+        else if (stateOverride === null && 0x23 === c) {
           url._fragment = '';
           state = ParserState.FRAGMENT;
         }
@@ -796,7 +814,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. Set state to path state.
           state = ParserState.PATH;
           // 2. If c is not U+002F (/), then decrease pointer by one.
-          if ('/' !== c) {
+          if (0x2F !== c) {
             cursor -= 1;
           }
         }
@@ -808,18 +826,19 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         //    - url is special and c is U+005C (\)
         //    - state override is not given and c is U+003F (?) or U+0023 (#)
         if (
-            (EOF === c || '/' === c) ||
-            (isSpecial(url) && '\\' === c) ||
-            (stateOverride === null && ('?' === c || '#' === c))
+            (EOF === c || 0x2F === c) ||
+            (isSpecial(url) && 0x5C === c) ||
+            (stateOverride === null && (0x3F === c || 0x23 === c))
         ) {
           // then:
+          let bufferString = ucs2encode(buffer);
           // 1. If url is special and c is U+005C (\), validation error.
           // 2. If buffer is a double-dot path segment, shorten url’s path,
           //    and then if neither c is U+002F (/), nor url is special and c is U+005C (\),
           //    append the empty string to url’s path.
-          if (isDoubleDotPathSegment(buffer)) {
+          if (isDoubleDotPathSegment(bufferString)) {
             shortenPath(url);
-            if ('/' !== c && !(isSpecial(url) && '\\' === c)) {
+            if (0x2F !== c && !(isSpecial(url) && 0x5C === c)) {
               url._path.push('');
             }
           }
@@ -827,15 +846,15 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    and if neither c is U+002F (/), nor url is special and c is U+005C (\),
           //    append the empty string to url’s path.
           else if (
-              isSingleDotPathSegment(buffer) &&
-              ('/' !== c && !(isSpecial(url) && '\\' === c))
+              isSingleDotPathSegment(bufferString) &&
+              (0x2F !== c && !(isSpecial(url) && 0x5C === c))
           ) {
             url._path.push('');
           }
           // 4. Otherwise, if buffer is not a single-dot path segment, then:
-          else if (!isSingleDotPathSegment(buffer)) {
+          else if (!isSingleDotPathSegment(bufferString)) {
             // 1. If url’s scheme is "file", url’s path is empty, and buffer is a Windows drive letter, then:
-            if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetter(buffer)) {
+            if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetterRaw(buffer)) {
               // 1. If url’s host is neither the empty string nor null,
               //    validation error, set url’s host to the empty string.
               if (EMPTY_HOST !== url._host && null !== url._host) {
@@ -843,28 +862,29 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               }
               // 2. Replace the second code point in buffer with U+003A (:).
               // (Note that isWindowsDriveLetter(buffer) implies buffer.length === 2)
-              buffer = buffer[0] + ':';
+              buffer[1] = 0x3A;
+              bufferString = ucs2encode(buffer);
             }
             // 2. Append buffer to url’s path.
-            url._path.push(buffer);
+            url._path.push(bufferString);
           }
           // 5. Set buffer to the empty string.
-          buffer = '';
+          buffer.length = 0;
           // 6. If url’s scheme is "file" and c is the EOF code point, U+003F (?), or U+0023 (#),
           //    then while url’s path’s size is greater than 1 and url’s path[0] is the empty string,
           //    validation error, remove the first item from url’s path.
-          if ('file' === url._scheme && (EOF === c || '?' === c || '#' === c)) {
+          if ('file' === url._scheme && (EOF === c || 0x3F === c || 0x23 === c)) {
             while (url._path.length > 1 && '' === url._path[0]) {
               url._path.shift();
             }
           }
           // 7. If c is U+003F (?), then set url’s query to the empty string and state to query state.
-          if ('?' === c) {
+          if (0x3F === c) {
             url._query = '';
             state = ParserState.QUERY;
           }
           // 8. If c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
-          else if ('#' === c) {
+          else if (0x23 === c) {
             url._fragment = '';
             state = ParserState.FRAGMENT;
           }
@@ -876,18 +896,18 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    validation error.
           // 3. UTF-8 percent encode c using the path percent-encode set,
           //    and append the result to buffer.
-          buffer += utf8PercentEncode(codePoint!, isPathPercentEncode);
+          buffer.push(...utf8PercentEncode(c, isPathPercentEncode));
         }
         break;
 
       case ParserState.CANNOT_BE_A_BASE_URL_PATH:
         // 1. If c is U+003F (?), then set url’s query to the empty string and state to query state.
-        if ('?' === c) {
+        if (0x3F === c) {
           url._query = '';
           state = ParserState.QUERY;
         }
         // 2. Otherwise, if c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
-        else if ('#' === c) {
+        else if (0x23 === c) {
           url._fragment = '';
           state = ParserState.FRAGMENT;
         }
@@ -900,7 +920,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    UTF-8 percent encode c using the C0 control percent-encode set,
           //    and append the result to url’s path[0].
           if (EOF !== c) {
-            url._path[0] += utf8PercentEncode(codePoint!, isC0ControlPercentEncode);
+            url._path[0] += ucs2encode(utf8PercentEncode(c, isC0ControlPercentEncode));
           }
         }
         break;
@@ -913,7 +933,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // TODO encoding
         // 2. If state override is not given and c is U+0023 (#),
         //    then set url’s fragment to the empty string and state to fragment state.
-        if (stateOverride === null && '#' === c) {
+        if (stateOverride === null && 0x23 === c) {
           url._fragment = '';
           state = ParserState.FRAGMENT;
         }
@@ -936,27 +956,30 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //      - byte is 0x27 (') and url is special
           //      then append byte, percent encoded, to url’s query.
           // 5.2. Otherwise, append a code point whose value is byte to url’s query.
-          url._query += utf8PercentEncodeString(
+          url._query += ucs2encode(utf8PercentEncode(
               c,
               isSpecial(url) ? isQueryPercentEncodeSpecial : isQueryPercentEncode
-          );
+          ));
         }
         break;
 
       case ParserState.FRAGMENT:
         // Switching on c:
         if (EOF === c) {
+          // The EOF code point
           // Do nothing
         }
-        else if ('\0' === c) {
+        else if (0x00 === c) {
+          // U+0000 NULL
           // Validation error.
         }
         else {
+          // Otherwise
           // 1. If c is not a URL code point and not U+0025 (%), validation error.
           // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits,
           //    validation error.
           // 3. UTF-8 percent encode c using the fragment percent-encode set and append the result to url’s fragment.
-          url._fragment += utf8PercentEncode(codePoint!, isFragmentPercentEncode);
+          url._fragment += ucs2encode(utf8PercentEncode(c, isFragmentPercentEncode));
         }
         break;
     }

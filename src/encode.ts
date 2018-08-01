@@ -1,10 +1,15 @@
-import { isHexDigit, parseHexDigit } from "./util";
+import { isHexDigit, parseHexDigit, toHexDigit } from "./util";
 import { utf8decoderaw, utf8encoderaw } from "./vendor/utf8";
 import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 
 // https://url.spec.whatwg.org/#percent-encode
-export function percentEncode(byte: number): string {
-  return `%${byte <= 0xF ? '0' : ''}${byte.toString(16).toUpperCase()}`;
+export function percentEncode(byte: number): number[] {
+  // return `%${byte <= 0xF ? '0' : ''}${byte.toString(16).toUpperCase()}`;
+  return [
+    0x25, // U+0025 (%)
+    toHexDigit(byte >> 4),
+    toHexDigit(byte & 0xF)
+  ]
 }
 
 // https://url.spec.whatwg.org/#percent-decode
@@ -95,23 +100,27 @@ export function isQueryPercentEncodeSpecial(code: number): boolean {
 }
 
 // https://url.spec.whatwg.org/#utf-8-percent-encode
-export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: number) => boolean): string {
+export function utf8PercentEncode(codePoint: number, percentEncodeSet: (code: number) => boolean): number[] {
   // 1. If codePoint is not in percentEncodeSet, then return codePoint.
   if (!percentEncodeSet(codePoint)) {
-    return ucs2encode([codePoint]);
+    return [codePoint];
   }
   // 2. Let bytes be the result of running UTF-8 encode on codePoint.
   const bytes = utf8encoderaw([codePoint]);
   // 3. Percent encode each byte in bytes, and then return the results concatenated, in the same order.
-  return bytes.map(percentEncode).join('');
+  const result: number[] = [];
+  for (let byte of bytes) {
+    result.push(...percentEncode(byte));
+  }
+  return result;
 }
 
 export function utf8PercentEncodeString(input: string, percentEncodeSet: (code: number) => boolean): string {
-  let output: string[] = [];
+  let output: number[] = [];
   for (let codePoint of ucs2decode(input)) {
-    output.push(utf8PercentEncode(codePoint, percentEncodeSet));
+    output.push(...utf8PercentEncode(codePoint, percentEncodeSet));
   }
-  return output.join('');
+  return ucs2encode(output);
 }
 
 // https://url.spec.whatwg.org/#string-percent-decode
