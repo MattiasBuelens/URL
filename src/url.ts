@@ -13,7 +13,7 @@ import {
 } from "./encode";
 import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
-import { ALPHA, isAlpha, isAlphanumeric, isDigit, toAsciiLowercase } from "./util";
+import { ALPHA, fromCodeUnits, isAlpha, isAlphanumeric, isDigit, toAsciiLowercase } from "./util";
 import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 import { OPAQUE_ORIGIN, serializeTupleOrigin } from "./origin";
 import { toUSVString } from "./usvstring";
@@ -81,7 +81,7 @@ function isWindowsDriveLetter(input: string): boolean {
 }
 
 function isWindowsDriveLetterRaw(input: number[]): boolean {
-  return input.length === 2 && isWindowsDriveLetter(ucs2encode(input));
+  return input.length === 2 && isWindowsDriveLetter(fromCodeUnits(input));
 }
 
 // https://url.spec.whatwg.org/#normalized-windows-drive-letter
@@ -203,9 +203,9 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         }
         // 2. Otherwise, if c is U+003A (:), then:
         else if (0x3A === c) {
+          const bufferString = ucs2encode(buffer);
           // 1. If state override is given, then:
           if (stateOverride !== null) {
-            const bufferString = ucs2encode(buffer);
             // 1. If url’s scheme is a special scheme and buffer is not a special scheme, then return.
             if (isSpecialScheme(url._scheme) && !isSpecialScheme(bufferString)) {
               return;
@@ -224,7 +224,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
           }
           // 2. Set url’s scheme to buffer.
-          url._scheme = ucs2encode(buffer);
+          url._scheme = bufferString;
           // 3. If state override is given, then:
           if (stateOverride !== null) {
             // 1. If url’s port is url’s scheme’s default port, then set url’s port to null.

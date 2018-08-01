@@ -1,6 +1,6 @@
 import { utf8encode } from "./vendor/utf8";
 import { percentEncode, utf8StringPercentDecode } from "./encode";
-import { ucs2encode } from "./vendor/ucs2";
+import { fromCodeUnits } from "./util";
 
 export const PLUS = /\+/g;
 export const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
@@ -87,7 +87,7 @@ function serializeUrlEncodedBytes(input: string): string {
     }
     else {
       // Append byte, percent encoded, to output.
-      output += ucs2encode(percentEncode(byte.charCodeAt(0)));
+      output += fromCodeUnits(percentEncode(byte.charCodeAt(0)));
     }
   }
   // 3. Return output.
