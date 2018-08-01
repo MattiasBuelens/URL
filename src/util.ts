@@ -1,9 +1,8 @@
-import {inplace} from 'stable';
+import { inplace } from 'stable';
 
 export const ALPHA = /[a-zA-Z]/;
 export const DIGIT = /[0-9]/;
 export const HEX_DIGIT = /[0-9a-fA-F]/;
-export const ALPHANUMERIC = /[a-zA-Z0-9+\-.]/;
 
 export const HEX_PREFIX = /^0x/i;
 export const ONLY_DEC = /^[0-9]+$/;
@@ -48,14 +47,38 @@ export function swap<T>(array: T[], i: number, j: number) {
   array[j] = temp;
 }
 
-export function isHexDigit(codePoint: number): boolean {
+export function isUpperAlpha(codePoint: number): boolean {
+  return (codePoint >= 0x41 && codePoint <= 0x5A) // A to Z
+}
+
+export function isLowerAlpha(codePoint: number): boolean {
+  return (codePoint >= 0x61 && codePoint <= 0x7A); // a to z
+}
+
+export function isAlpha(codePoint: number): boolean {
+  return isUpperAlpha(codePoint) || isLowerAlpha(codePoint);
+}
+
+export function isDigit(codePoint: number): boolean {
   return (codePoint >= 0x30 && codePoint <= 0x39) // 0 to 9
+}
+
+export function isAlphanumeric(codePoint: number): boolean {
+  return isDigit(codePoint) || isAlpha(codePoint);
+}
+
+export function isHexDigit(codePoint: number): boolean {
+  return isDigit(codePoint) // 0 to 9
       || (codePoint >= 0x41 && codePoint <= 0x46) // A to F
       || (codePoint >= 0x61 && codePoint <= 0x66); // a to f
 }
 
+export function toAsciiLowercase(codePoint: number): number {
+  return isUpperAlpha(codePoint) ? codePoint + 0x20 : codePoint;
+}
+
 export function parseHexDigit(codePoint: number): number {
-  if (codePoint >= 0x30 && codePoint <= 0x39) { // 0 to 9
+  if (isDigit(codePoint)) { // 0 to 9
     return codePoint - 0x30;
   } else if (codePoint >= 0x41 && codePoint <= 0x46) { // A to F
     return codePoint - 0x41 + 0xA;
@@ -72,7 +95,7 @@ export function replaceArray<T>(dest: T[], src: T[]): void {
   dest.length = src.length;
 }
 
-export {inplace as stableSort};
+export { inplace as stableSort };
 
 const mathMin = Math.min;
 const stringFromCharCode = String.fromCharCode;
