@@ -1,10 +1,23 @@
-import { utf8encode } from "./vendor/utf8";
+import { utf8encoderaw } from "./vendor/utf8";
 import { percentEncode, utf8StringPercentDecode } from "./encode";
-import { fromCodeUnits } from "./util";
+import { fromCodeUnits, isAlphanumeric } from "./util";
+import { ucs2decode } from "./vendor/ucs2";
 
 export const PLUS = /\+/g;
-export const SAFE_URL_ENCODE = /[a-zA-Z0-9*\-._]/;
 
+function isSafeUrlEncode(codePoint: number): boolean {
+  return (0x2A === codePoint) // 0x2A (*)
+      || (0x2D === codePoint) // 0x2D (-)
+      || (0x2E === codePoint) // 0x2E (.)
+      || (0x5F === codePoint)  // 0x5F (_)
+      // 0x30 (0) to 0x39 (9)
+      // 0x41 (A) to 0x5A (Z)
+      // 0x61 (a) to 0x7A (z)
+      || isAlphanumeric(codePoint);
+}
+
+// https://url.spec.whatwg.org/#concept-urlencoded-string-parser
+// https://url.spec.whatwg.org/#concept-urlencoded-parser
 export function parseUrlEncoded(input: string): Array<[string, string]> {
   // 1. Let sequences be the result of splitting input on 0x26 (&).
   const sequences = input.split('&');
@@ -45,6 +58,7 @@ export function parseUrlEncoded(input: string): Array<[string, string]> {
   return output;
 }
 
+// https://url.spec.whatwg.org/#concept-urlencoded-serializer
 export function serializeUrlEncoded(tuples: ReadonlyArray<[string, string]>): string {
   // 1. Let encoding be UTF-8.
   // 2. If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
@@ -55,11 +69,11 @@ export function serializeUrlEncoded(tuples: ReadonlyArray<[string, string]>): st
   for (let index = 0; index < tuples.length; index++) {
     const tuple = tuples[index];
     // 1. Let name be the result of serializing the result of encoding tuple’s name, using encoding.
-    const name = serializeUrlEncodedBytes(utf8encode(tuple[0]));
+    const name = serializeUrlEncodedBytes(utf8encoderaw(ucs2decode(tuple[0])));
     // 2. Let value be tuple’s value.
     // 3. (skipped, we're not parsing HTML)
     // 4. Set value to the result of serializing the result of encoding value, using encoding.
-    const value = serializeUrlEncodedBytes(utf8encode(tuple[1]));
+    const value = serializeUrlEncodedBytes(utf8encoderaw(ucs2decode(tuple[1])));
     // 5. If tuple is not the first pair in tuples, then append U+0026 (&) to output.
     if (index > 0) {
       output += '&';
@@ -71,25 +85,26 @@ export function serializeUrlEncoded(tuples: ReadonlyArray<[string, string]>): st
   return output;
 }
 
-function serializeUrlEncodedBytes(input: string): string {
+// https://url.spec.whatwg.org/#concept-urlencoded-byte-serializer
+function serializeUrlEncodedBytes(input: number[]): string {
   // 1. Let output be the empty string.
-  let output = '';
+  let output: number[] = [];
   // 2. For each byte in input, depending on byte:
   for (let index = 0; index < input.length; index++) {
     const byte = input[index];
-    if (' ' === byte) {
+    if (0x20 === byte) { // 0x20 (SP)
       // Append U+002B (+) to output.
-      output += '+';
+      output.push(0x2B);
     }
-    else if (SAFE_URL_ENCODE.test(byte)) {
+    else if (isSafeUrlEncode(byte)) {
       // Append a code point whose value is byte to output.
-      output += byte;
+      output.push(byte);
     }
     else {
       // Append byte, percent encoded, to output.
-      output += fromCodeUnits(percentEncode(byte.charCodeAt(0)));
+      output.push(...percentEncode(byte));
     }
   }
   // 3. Return output.
-  return output;
+  return fromCodeUnits(output);
 }
