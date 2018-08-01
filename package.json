@@ -23,6 +23,7 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "watch": "rollup -c -w",
     "test": "node run-web-platform-tests.js",
     "sync-wpt": "git submodule update --init"
   },
