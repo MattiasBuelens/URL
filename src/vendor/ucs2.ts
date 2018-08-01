@@ -1,10 +1,9 @@
-/*! https://mths.be/utf8js v3.0.0 by @mathias */
-
 import { fromCodeUnits } from "../util";
 
 export { ucs2decode } from 'punycode';
 
-// Taken from https://mths.be/punycode
+// Taken from utf8.js v3.0.0 by Mathias Bynens (MIT licensed)
+// https://github.com/mathiasbynens/utf8.js
 export function ucs2encode(array: number[]): string {
   let output: number[] = [];
   for (let value of array) {
