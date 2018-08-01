@@ -168,7 +168,6 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   while (cursor <= length) {
     // TODO Optimize by replacing 'c' with 'codePoint'
     const codePoint = cursor < length ? codePoints[cursor] : EOF;
-    const c = cursor < length ? ucs2encode([codePoint!]) : undefined;
     switch (state) {
       case ParserState.SCHEME_START:
         // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
@@ -948,8 +947,8 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //      - byte is 0x27 (') and url is special
           //      then append byte, percent encoded, to url’s query.
           // 5.2. Otherwise, append a code point whose value is byte to url’s query.
-          url._query += utf8PercentEncodeString(
-              c!,
+          url._query += utf8PercentEncode(
+              codePoint,
               isSpecial(url) ? isQueryPercentEncodeSpecial : isQueryPercentEncode
           );
         }
