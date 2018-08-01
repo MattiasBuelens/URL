@@ -13,7 +13,7 @@ import {
 } from "./encode";
 import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
 import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
-import { ALPHA, isAlpha, isAlphanumeric, isDigit } from "./util";
+import { ALPHA, isAlpha, isAlphanumeric, isDigit, toAsciiLowercase } from "./util";
 import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 import { OPAQUE_ORIGIN, serializeTupleOrigin } from "./origin";
 import { toUSVString } from "./usvstring";
@@ -152,7 +152,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
   // 7. If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
   // TODO encoding
   // 8. Let buffer be the empty string.
-  let buffer = '';
+  let buffer: number[] = [];
   // 9. Let the @ flag, [] flag, and passwordTokenSeenFlag be unset.
   let seenAt = false;
   let seenBracket = false;
@@ -173,12 +173,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SCHEME_START:
         // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
         if (isAlpha(codePoint)) {
-          buffer += String.fromCharCode(codePoint).toLowerCase(); // ASCII-safe
+          buffer.push(toAsciiLowercase(codePoint)); // ASCII-safe
           state = ParserState.SCHEME;
         }
         // 2. Otherwise, if state override is not given, set state to no scheme state, and decrease pointer by one.
         else if (stateOverride === null) {
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.NO_SCHEME;
           continue;
         }
@@ -191,22 +191,23 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
       case ParserState.SCHEME:
         // 1. If c is an ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.), append c, lowercased, to buffer.
         if (isAlphanumeric(codePoint) || 0x2B === codePoint || 0x2D === codePoint || 0x2E === codePoint) {
-          buffer += String.fromCharCode(codePoint).toLowerCase(); // ASCII-safe
+          buffer.push(toAsciiLowercase(codePoint)); // ASCII-safe
         }
         // 2. Otherwise, if c is U+003A (:), then:
         else if (0x3A === codePoint) {
           // 1. If state override is given, then:
           if (stateOverride !== null) {
+            const bufferString = ucs2encode(buffer);
             // 1. If url’s scheme is a special scheme and buffer is not a special scheme, then return.
-            if (isSpecialScheme(url._scheme) && !isSpecialScheme(buffer)) {
+            if (isSpecialScheme(url._scheme) && !isSpecialScheme(bufferString)) {
               return;
             }
             // 2. If url’s scheme is not a special scheme and buffer is a special scheme, then return.
-            if (!isSpecialScheme(url._scheme) && isSpecialScheme(buffer)) {
+            if (!isSpecialScheme(url._scheme) && isSpecialScheme(bufferString)) {
               return;
             }
             // 3. If url includes credentials or has a non-null port, and buffer is "file", then return.
-            if ((includesCredentials(url) || url._port !== null) && 'file' === buffer) {
+            if ((includesCredentials(url) || url._port !== null) && 'file' === bufferString) {
               return;
             }
             // 4. If url’s scheme is "file" and its host is an empty host or null, then return.
@@ -215,7 +216,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
           }
           // 2. Set url’s scheme to buffer.
-          url._scheme = buffer;
+          url._scheme = ucs2encode(buffer);
           // 3. If state override is given, then:
           if (stateOverride !== null) {
             // 1. If url’s port is url’s scheme’s default port, then set url’s port to null.
@@ -226,7 +227,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             return;
           }
           // 4. Set buffer to the empty string.
-          buffer = '';
+          buffer.length = 0;
           // 5. If url’s scheme is "file", then:
           if ('file' === url._scheme) {
             // 1. If remaining does not start with "//", validation error.
@@ -261,7 +262,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // set buffer to the empty string, state to no scheme state,
         // and start over (from the first code point in input).
         else if (stateOverride === null) {
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.NO_SCHEME;
           cursor = 0;
           continue;
@@ -470,12 +471,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // 1. Validation error.
           // 2. If the @ flag is set, prepend "%40" to buffer.
           if (seenAt) {
-            buffer = '%40' + buffer;
+            buffer.unshift(0x25, 0x34, 0x30);
           }
           // 3. Set the @ flag.
           seenAt = true;
           // 4. For each codePoint in buffer:
-          for (let codePoint of ucs2decode(buffer)) {
+          for (let codePoint of buffer) {
             // 1. If codePoint is U+003A (:) and passwordTokenSeenFlag is unset,
             //    then set passwordTokenSeenFlag and continue.
             if (0x3A === codePoint && !passwordTokenSeenFlag) {
@@ -495,7 +496,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             }
           }
           // 5. Set buffer to the empty string.
-          buffer = '';
+          buffer.length = 0;
         }
         // 2. Otherwise, if one of the following is true:
         //    - c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
@@ -506,19 +507,19 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         ) {
           // then:
           // 1. If @ flag is set and buffer is the empty string, validation error, return failure.
-          if (seenAt && '' === buffer) {
+          if (seenAt && 0 === buffer.length) {
             // e.g. http://user@/foo
             throw new TypeError('Invalid host');
           }
           // 2. Decrease pointer by the number of code points in buffer plus one,
           //    set buffer to the empty string, and set state to host state.
           cursor -= buffer.length + 1;
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.HOST;
         }
         // 3. Otherwise, append c to buffer.
         else {
-          buffer += c;
+          buffer.push(codePoint);
         }
         break;
 
@@ -533,15 +534,15 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         // 2. Otherwise, if c is U+003A (:) and the [] flag is unset, then:
         else if (0x3A === codePoint && !seenBracket) {
           // 1. If buffer is the empty string, validation error, return failure.
-          if ('' === buffer) {
+          if (0 === buffer.length) {
             throw new TypeError('Invalid host');
           }
           // 2. Let host be the result of host parsing buffer with url is special.
           // 3. If host is failure, then return failure.
-          const host = parseHost(buffer, isSpecial(url));
+          const host = parseHost(ucs2encode(buffer), isSpecial(url));
           // 4. Set url’s host to host, buffer to the empty string, and state to port state.
           url._host = host;
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.PORT;
           // 5. If state override is given and state override is hostname state, then return.
           if (stateOverride === ParserState.HOSTNAME) {
@@ -558,21 +559,21 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           // then decrease pointer by one, and then:
           cursor -= 1;
           // 1. If url is special and buffer is the empty string, validation error, return failure.
-          if (isSpecial(url) && '' === buffer) {
+          if (isSpecial(url) && 0 === buffer.length) {
             throw new TypeError('Invalid host');
           }
           // 2. Otherwise, if state override is given, buffer is the empty string,
           //    and either url includes credentials or url’s port is non-null,
           //    validation error, return.
-          if (stateOverride !== null && '' === buffer && (includesCredentials(url) || url._port !== null)) {
+          if (stateOverride !== null && 0 === buffer.length && (includesCredentials(url) || url._port !== null)) {
             return;
           }
           // 3. Let host be the result of host parsing buffer with url is special.
           // 4. If host is failure, then return failure.
-          const host = parseHost(buffer, isSpecial(url));
+          const host = parseHost(ucs2encode(buffer), isSpecial(url));
           // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
           url._host = host;
-          buffer = '';
+          buffer.length = 0;
           state = ParserState.PATH_START;
           // 6. If state override is given, then return.
           if (stateOverride !== null) {
@@ -590,14 +591,14 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             seenBracket = false;
           }
           // 3. Append c to buffer.
-          buffer += c;
+          buffer.push(codePoint);
         }
         break;
 
       case ParserState.PORT:
         // 1. If c is an ASCII digit, append c to buffer.
         if (isDigit(codePoint)) {
-          buffer += c;
+          buffer.push(codePoint);
         }
         // 2. Otherwise, if one of the following is true:
         //    - c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
@@ -610,10 +611,10 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
         ) {
           // then:
           // 1. If buffer is not the empty string, then:
-          if ('' !== buffer) {
+          if (0 !== buffer.length) {
             // 1. Let port be the mathematical integer value that is represented
             //    by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
-            const port = parseInt(buffer, 10);
+            const port = parseInt(ucs2encode(buffer), 10);
             // 2. If port is greater than 2^16 − 1, validation error, return failure.
             if (port > (1 << 16) - 1) {
               throw new TypeError('Invalid port');
@@ -621,7 +622,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             // 3. Set url’s port to null, if port is url’s scheme’s default port, and to port otherwise.
             url._port = (port === defaultPorts[url._scheme]) ? null : port;
             // 4. Set buffer to the empty string.
-            buffer = '';
+            buffer.length = 0;
           }
           // 2. If state override is given, then return.
           if (stateOverride !== null) {
@@ -737,11 +738,11 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           cursor -= 1;
           // 1. If state override is not given and buffer is a Windows drive letter,
           //    validation error, set state to path state.
-          if (stateOverride === null && isWindowsDriveLetter(buffer)) {
+          if (stateOverride === null && isWindowsDriveLetter(ucs2encode(buffer))) {
             state = ParserState.PATH;
           }
           // 2. Otherwise, if buffer is the empty string, then:
-          else if (buffer === '') {
+          else if (0 === buffer.length) {
             // 1. Set url’s host to the empty string.
             url._host = EMPTY_HOST;
             // 2. If state override is given, then return.
@@ -755,7 +756,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           else {
             // 1. Let host be the result of host parsing buffer with url is special.
             // 2. If host is failure, then return failure.
-            let host = parseHost(buffer, isSpecial(url));
+            let host = parseHost(ucs2encode(buffer), isSpecial(url));
             // 3. If host is "localhost", then set host to the empty string.
             if (host._type === HostType.DOMAIN && 'localhost' === host._domain) {
               host = EMPTY_HOST;
@@ -767,13 +768,13 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               return;
             }
             // 6. Set buffer to the empty string and state to path start state.
-            buffer = '';
+            buffer.length = 0;
             state = ParserState.PATH_START;
           }
         }
         // 2. Otherwise, append c to buffer.
         else {
-          buffer += c;
+          buffer.push(codePoint);
         }
         break;
 
@@ -822,11 +823,12 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
             (stateOverride === null && (0x3F === codePoint || 0x23 === codePoint))
         ) {
           // then:
+          let bufferString = ucs2encode(buffer);
           // 1. If url is special and c is U+005C (\), validation error.
           // 2. If buffer is a double-dot path segment, shorten url’s path,
           //    and then if neither c is U+002F (/), nor url is special and c is U+005C (\),
           //    append the empty string to url’s path.
-          if (isDoubleDotPathSegment(buffer)) {
+          if (isDoubleDotPathSegment(bufferString)) {
             shortenPath(url);
             if (0x2F !== codePoint && !(isSpecial(url) && 0x5C === codePoint)) {
               url._path.push('');
@@ -836,15 +838,15 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    and if neither c is U+002F (/), nor url is special and c is U+005C (\),
           //    append the empty string to url’s path.
           else if (
-              isSingleDotPathSegment(buffer) &&
+              isSingleDotPathSegment(bufferString) &&
               (0x2F !== codePoint && !(isSpecial(url) && 0x5C === codePoint))
           ) {
             url._path.push('');
           }
           // 4. Otherwise, if buffer is not a single-dot path segment, then:
-          else if (!isSingleDotPathSegment(buffer)) {
+          else if (!isSingleDotPathSegment(bufferString)) {
             // 1. If url’s scheme is "file", url’s path is empty, and buffer is a Windows drive letter, then:
-            if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetter(buffer)) {
+            if ('file' === url._scheme && url._path.length === 0 && isWindowsDriveLetter(bufferString)) {
               // 1. If url’s host is neither the empty string nor null,
               //    validation error, set url’s host to the empty string.
               if (EMPTY_HOST !== url._host && null !== url._host) {
@@ -852,13 +854,14 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
               }
               // 2. Replace the second code point in buffer with U+003A (:).
               // (Note that isWindowsDriveLetter(buffer) implies buffer.length === 2)
-              buffer = buffer[0] + ':';
+              buffer[1] = 0x3A;
+              bufferString = ucs2encode(buffer);
             }
             // 2. Append buffer to url’s path.
-            url._path.push(buffer);
+            url._path.push(bufferString);
           }
           // 5. Set buffer to the empty string.
-          buffer = '';
+          buffer.length = 0;
           // 6. If url’s scheme is "file" and c is the EOF code point, U+003F (?), or U+0023 (#),
           //    then while url’s path’s size is greater than 1 and url’s path[0] is the empty string,
           //    validation error, remove the first item from url’s path.
@@ -885,7 +888,7 @@ function parse(input: string, base: UrlRecord | null, url: UrlRecord | null = nu
           //    validation error.
           // 3. UTF-8 percent encode c using the path percent-encode set,
           //    and append the result to buffer.
-          buffer += utf8PercentEncode(codePoint!, isPathPercentEncode);
+          buffer.push(...ucs2decode(utf8PercentEncode(codePoint!, isPathPercentEncode)));
         }
         break;
 
