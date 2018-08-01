@@ -67,7 +67,8 @@ function config(name, {
         ]
       }) : undefined,
       es5 ? rollupInject({
-        include: 'node_modules/**',
+        include: ['node_modules/**'],
+        exclude: ['node_modules/punycode/**'],
         modules: {
           'String.fromCodePoint': path.resolve(__dirname, 'src/polyfill/string-fromcodepoint.ts')
         }
