@@ -1,23 +1,13 @@
 declare module 'punycode' {
-  interface ucs2 {
-    decode(string: string): number[];
+  export function ucs2decode(string: string): number[];
 
-    encode(codePoints: number[]): string;
-  }
+  export function ucs2encode(codePoints: number[]): string;
 
-  interface Punycode {
-    decode(string: string): string;
+  export function decode(string: string): string;
 
-    encode(string: string): string;
+  export function encode(string: string): string;
 
-    toUnicode(domain: string): string;
+  export function toUnicode(domain: string): string;
 
-    toASCII(domain: string): string;
-
-    ucs2: ucs2;
-    version: any;
-  }
-
-  var punycode: Punycode;
-  export default punycode;
+  export function toASCII(domain: string): string;
 }
