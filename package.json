@@ -45,8 +45,8 @@
     "rollup-plugin-typescript2": "^0.17.0",
     "rollup-plugin-visualizer": "^0.9.0",
     "stable": "^0.1.8",
-    "typescript": "^3.0.1",
+    "typescript": "^3.0.3",
     "unorm": "^1.4.1",
-    "wpt-runner": "^2.4.0"
+    "wpt-runner": "^2.5.0"
   }
 }
