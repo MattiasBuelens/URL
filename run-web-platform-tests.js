@@ -11,6 +11,7 @@ const testsPath = path.resolve(__dirname, 'web-platform-tests/url');
 const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
     'url-constructor.html',
     'url-origin.html',
+    'url-searchparams.any.html',
     'url-setters.html',
     'url-tojson.html',
     'urlsearchparams-*.html'
