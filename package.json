@@ -22,6 +22,9 @@
   "contributors": [
     "Erik Arvidsson <arv@chromium.org>"
   ],
+  "engines": {
+    "node": ">= 8"
+  },
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",

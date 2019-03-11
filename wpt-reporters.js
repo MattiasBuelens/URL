@@ -5,14 +5,14 @@ exports.filteringReporter = function (next, { filter }) {
       next.startSuite(name);
     },
     pass(message) {
-      if (filter.test(message)) {
+      if (filter(message)) {
         next.pass(message);
       } else if (next.skip) {
         next.skip(message);
       }
     },
     fail(message) {
-      if (filter.test(message)) {
+      if (filter(message)) {
         next.fail(message);
       } else {
         ignoreStack = true;

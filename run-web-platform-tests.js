@@ -1,48 +1,73 @@
 'use strict';
 const path = require('path');
+const fs = require('fs');
+const {promisify} = require('util');
 const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter');
-const { filteringReporter, countingReporter } = require('./wpt-reporters');
+const {filteringReporter, countingReporter} = require('./wpt-reporters');
 const minimatch = require('minimatch');
 
-const { URL, URLSearchParams } = require('./dist/url.js');
+const readFileAsync = promisify(fs.readFile);
 
 const testsPath = path.resolve(__dirname, 'web-platform-tests/url');
 const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
-    'url-constructor.html',
-    'url-origin.html',
-    'url-searchparams.any.html',
-    'url-setters.html',
-    'url-tojson.html',
-    'urlsearchparams-*.html'
+  'url-constructor.html',
+  'url-origin.html',
+  'url-searchparams.any.html',
+  'url-setters.html',
+  'url-tojson.html',
+  'urlsearchparams-*.html'
 ];
 
-function filter(testPath) {
-  return filterGlobs.some(glob => minimatch(testPath, glob));
+main().catch(e => {
+  console.error(e.stack);
+  process.exitCode = 1;
+});
+
+async function main() {
+  let failures = 0;
+
+  failures += await test('./dist/url.js');
+
+  process.exitCode = failures;
 }
 
-// count individual test results
-const counter = countingReporter(consoleReporter);
-// skip URL setter tests for HTML elements
-const reporter = filteringReporter(counter, { filter: /^(?!<a>|<area>)/ });
-
-wptRunner(testsPath, { rootURL: 'url/', setup, filter, reporter })
-  .then(failures => {
-    const { counts } = counter;
-    console.log(`\nTotal: ${counts.pass} passed, ${counts.fail} failed, ${counts.skip} skipped`);
-    process.exitCode = counts.fail;
-  })
-  .catch(e => {
-    console.error(e.stack);
-    process.exitCode = 1;
+async function test(entryPointPath) {
+  // count individual test results
+  const counter = countingReporter(consoleReporter);
+  // ignore specific test failures
+  const reporter = filteringReporter(counter, {
+    filter(name) {
+      return !(
+          // ignore URL setter tests for HTML elements
+          name.startsWith('<a>')
+          || name.startsWith('<area>')
+      );
+    }
   });
 
-function setup(window) {
-  window.Promise = Promise;
-  window.fetch = createFetch(window.XMLHttpRequest, window.Promise);
+  // load entry point
+  const code = await readFileAsync(entryPointPath, {encoding: 'utf8'});
 
-  window.URL = URL;
-  window.URLSearchParams = URLSearchParams;
+  await wptRunner(testsPath, {
+    rootURL: 'url/',
+    reporter,
+    setup(window) {
+      window.fetch = createFetch(window.XMLHttpRequest, window.Promise);
+
+      // load polyfill
+      delete window.URL;
+      delete window.URLSearchParams;
+      window.eval(code);
+    },
+    filter(testPath) {
+      return filterGlobs.some(glob => minimatch(testPath, glob));
+    }
+  });
+
+  const {counts} = counter;
+  console.log(`\nTotal: ${counts.pass} passed, ${counts.fail} failed, ${counts.skip} skipped`);
+  return counts.fail;
 }
 
 // Silly fetch polyfill just to make the following line work in URL tests:
