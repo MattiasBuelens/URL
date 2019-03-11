@@ -94,7 +94,26 @@ function config(name, {
   };
 }
 
+function types(name) {
+  return {
+    input: 'src/polyfill.ts',
+    output: [
+      {
+        file: `dist/types/${name}.d.ts`,
+        format: 'es',
+        name: 'URL'
+      }
+    ],
+    plugins: [
+      rollupDts.dts({
+        tsconfig: './tsconfig.json'
+      })
+    ]
+  };
+}
+
 module.exports = [
+  types('url'),
   config('url', { es5: true, esm: true }),
   config('url.min', { es5: true, minify: true }),
   config('url.es6', { es5: false, esm: true }),

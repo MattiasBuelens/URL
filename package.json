@@ -4,6 +4,7 @@
   "main": "dist/url.js",
   "module": "dist/url.mjs",
   "browser": "dist/url.min.js",
+  "types": "dist/types/url.d.ts",
   "files": [
     "dist/",
     "loose/"
