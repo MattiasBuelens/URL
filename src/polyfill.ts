@@ -44,6 +44,10 @@ if (hasWorkingUrl) {
       OriginalURL.revokeObjectURL(url);
     };
   }
+  if (scope) {
+    scope.URL = URLPolyfill;
+    scope.URLSearchParams = URLSearchParamsPolyfill;
+  }
 }
 
 export {
