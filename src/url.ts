@@ -1096,12 +1096,8 @@ function getOrigin(url: UrlRecord): string {
 
 // region URLSearchParams internals
 
-export interface URLInternals {
-  _url: UrlRecord;
-}
-
 export function setUrlQuery(url: URL, query: string | null) {
-  (url as any as URLInternals)._url._query = query;
+  url._url._query = query;
 }
 
 // endregion
@@ -1113,7 +1109,7 @@ function isURL(x: any): x is URL {
   if (!(x instanceof URL)) {
     return false;
   }
-  if (typeof (x as any as URLInternals)._url !== 'object') {
+  if (typeof x._url !== 'object') {
     // Bail out if internal URL record is missing
     return false;
   }
@@ -1121,7 +1117,8 @@ function isURL(x: any): x is URL {
 }
 
 class URL {
-  private _url: UrlRecord;
+  /** @internal */
+  _url: UrlRecord;
   private readonly _query: URLSearchParams;
 
   constructor(url: string, base?: string | URL) {

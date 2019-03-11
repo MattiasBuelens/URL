@@ -7,6 +7,7 @@
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
+    "stripInternal": true,
     "lib": [
       "dom",
       "es5",

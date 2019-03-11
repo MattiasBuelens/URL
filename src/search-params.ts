@@ -11,21 +11,16 @@ function compareParams([key1]: [string, string], [key2]: [string, string]): numb
 
 // region URL internals
 
-interface URLSearchParamsInternals {
-  readonly _list: Array<[string, string]>;
-  _url: jURL | null;
-}
-
 export function setParamsUrl(params: URLSearchParams, url: jURL) {
-  (params as any as URLSearchParamsInternals)._url = url;
+  params._url = url;
 }
 
 export function emptyParams(params: URLSearchParams) {
-  (params as any as URLSearchParamsInternals)._list.length = 0;
+  params._list.length = 0;
 }
 
 export function setParamsQuery(params: URLSearchParams, query: string) {
-  replaceArray((params as any as URLSearchParamsInternals)._list, parseUrlEncoded(query));
+  replaceArray(params._list, parseUrlEncoded(query));
 }
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-new
@@ -44,18 +39,17 @@ export function newURLSearchParams(init: string | null): URLSearchParams {
 
 // https://url.spec.whatwg.org/#concept-urlsearchparams-update
 function update(params: URLSearchParams): void {
-  const context = params as any as URLSearchParamsInternals;
-  if (!context._url) {
+  if (!params._url) {
     return;
   }
   // 1. Let query be the serialization of URLSearchParams object’s list.
-  let query: string | null = serializeUrlEncoded(context._list);
+  let query: string | null = serializeUrlEncoded(params._list);
   // 2. If query is the empty string, then set query to null.
   if ('' === query) {
     query = null;
   }
   // 3. Set url object’s url’s query to query.
-  setUrlQuery(context._url, query);
+  setUrlQuery(params._url, query);
 }
 
 // endregion
@@ -64,7 +58,7 @@ function isURLSearchParams(x: any): x is URLSearchParams {
   if (!(x instanceof URLSearchParams)) {
     return false;
   }
-  if (!isArray((x as any as URLSearchParamsInternals)._list)) {
+  if (!isArray(x._list)) {
     // Bail out if internal list is missing
     return false;
   }
@@ -78,8 +72,10 @@ function isURLSearchParams(x: any): x is URLSearchParams {
 }
 
 export class URLSearchParams implements Iterable<[string, string]> {
-  private readonly _list: Array<[string, string]>;
-  private _url: jURL | null = null;
+  /** @internal */
+  readonly _list: Array<[string, string]>;
+  /** @internal */
+  _url: jURL | null = null;
 
   // https://url.spec.whatwg.org/#concept-urlsearchparams-new
   // URL Standard says the default value is '', but as undefined and '' have
