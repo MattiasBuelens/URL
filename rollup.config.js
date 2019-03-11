@@ -49,7 +49,8 @@ function config(name, {
       }),
       rollupTypescript2({
         typescript: require('typescript'),
-        rollupCommonJSResolveHack: true
+        rollupCommonJSResolveHack: true,
+        objectHashIgnoreUnknownHack: true
       }),
       es5 ? rollupBabel({
         exclude: 'node_modules/idna-uts46/idna-map.js',
@@ -84,7 +85,7 @@ function config(name, {
                 regex: /^_/
               }
             },
-            sourceMap: true
+            sourcemap: true
           }
       ) : undefined,
       minify ? rollupVisualizer({

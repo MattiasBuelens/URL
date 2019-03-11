@@ -38,7 +38,7 @@ if (hasWorkingUrl) {
     URL.createObjectURL = function (blob) {
       // IE extension allows a second optional options argument.
       // http://msdn.microsoft.com/en-us/library/ie/hh772302(v=vs.85).aspx
-      return OriginalURL.createObjectURL.apply(OriginalURL, arguments);
+      return (OriginalURL.createObjectURL as Function).apply(OriginalURL, arguments);
     };
     URL.revokeObjectURL = function (url) {
       OriginalURL.revokeObjectURL(url);
