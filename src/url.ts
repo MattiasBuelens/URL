@@ -12,7 +12,7 @@ import {
   utf8PercentEncodeString
 } from "./encode";
 import { EMPTY_HOST, Host, HostType, parseHost, serializeHost } from "./host";
-import { emptyParams, newURLSearchParams, setParamsQuery, setParamsUrl, URLSearchParams } from "./search-params";
+import { emptyParams, newURLSearchParams, setParamsQuery, URLSearchParams } from "./search-params";
 import { ALPHA, fromCodeUnits, isAlpha, isAlphanumeric, isDigit, toAsciiLowercase } from "./util";
 import { ucs2decode, ucs2encode } from "./vendor/ucs2";
 import { OPAQUE_ORIGIN, serializeTupleOrigin } from "./origin";
@@ -1094,14 +1094,6 @@ function getOrigin(url: UrlRecord): string {
   }
 }
 
-// region URLSearchParams internals
-
-export function setUrlQuery(url: URL, query: string | null) {
-  url._url._query = query;
-}
-
-// endregion
-
 function isURL(x: any): x is URL {
   if (x == null) {
     return false;
@@ -1156,7 +1148,7 @@ class URL {
     // 8. Set result’s query object to a new URLSearchParams object using query,
     // and then set that query object’s url object to result.
     this._query = newURLSearchParams(query);
-    setParamsUrl(this._query, this);
+    this._query._url = this;
     // 9. Return result.
   }
 

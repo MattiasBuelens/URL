@@ -1,4 +1,4 @@
-import { jURL, setUrlQuery } from "./url";
+import { jURL } from "./url";
 import { isArray, isSequence, replaceArray, sequenceToArray, stableSort, supportsSymbolIterator } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
@@ -10,10 +10,6 @@ function compareParams([key1]: [string, string], [key2]: [string, string]): numb
 }
 
 // region URL internals
-
-export function setParamsUrl(params: URLSearchParams, url: jURL) {
-  params._url = url;
-}
 
 export function emptyParams(params: URLSearchParams) {
   params._list.length = 0;
@@ -49,7 +45,7 @@ function update(params: URLSearchParams): void {
     query = null;
   }
   // 3. Set url object’s url’s query to query.
-  setUrlQuery(params._url, query);
+  params._url._url._query = query;
 }
 
 // endregion
