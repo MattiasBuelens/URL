@@ -16,7 +16,7 @@ const OriginalURLSearchParams = scope && scope.URLSearchParams;
 
 // feature detect for URL constructor
 let hasWorkingUrl = false;
-if (OriginalURL && !(scope && scope.forceJURL)) {
+if (OriginalURL && OriginalURLSearchParams && !(scope && scope.forceJURL)) {
   try {
     const u = new OriginalURL('b', 'http://a');
     u.pathname = 'c%20d';
