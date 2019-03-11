@@ -25,25 +25,28 @@ if (OriginalURL && OriginalURLSearchParams && !(scope && scope.forceJURL)) {
   }
 }
 
-let URL: typeof window.URL;
-let URLSearchParams: typeof window.URLSearchParams;
+let URLPolyfill: typeof URL;
+let URLSearchParamsPolyfill: typeof URLSearchParams;
 if (hasWorkingUrl) {
-  URL = OriginalURL!;
-  URLSearchParams = OriginalURLSearchParams!;
+  URLPolyfill = OriginalURL!;
+  URLSearchParamsPolyfill = OriginalURLSearchParams!;
 } else {
-  URL = jURL as any;
-  URLSearchParams = jURLSearchParams as any;
+  URLPolyfill = jURL as any;
+  URLSearchParamsPolyfill = jURLSearchParams as any;
   // Copy over the static methods
   if (OriginalURL) {
-    URL.createObjectURL = function (blob) {
+    URLPolyfill.createObjectURL = function (blob) {
       // IE extension allows a second optional options argument.
       // http://msdn.microsoft.com/en-us/library/ie/hh772302(v=vs.85).aspx
       return (OriginalURL.createObjectURL as Function).apply(OriginalURL, arguments);
     };
-    URL.revokeObjectURL = function (url) {
+    URLPolyfill.revokeObjectURL = function (url) {
       OriginalURL.revokeObjectURL(url);
     };
   }
 }
 
-export { URL, URLSearchParams };
+export {
+  URLPolyfill as URL,
+  URLSearchParamsPolyfill as URLSearchParams
+};
