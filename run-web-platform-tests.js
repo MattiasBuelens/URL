@@ -28,15 +28,20 @@ async function main() {
   let failures = 0;
 
   failures += await test('./dist/url.js', []);
+  failures += await test('./dist/url.min.js', []);
+  failures += await test('./dist/url.es6.js', []);
 
-  // for the loose version, skip tests that require full IDNA UTS #46 support
+  // for the loose versions, skip tests that require full IDNA UTS #46 support
   const skippedLooseTests = require('./test/skip-loose.json');
   failures += await test('./dist/url.loose.js', skippedLooseTests);
+  failures += await test('./dist/url.loose.min.js', skippedLooseTests);
 
   process.exitCode = failures;
 }
 
 async function test(entryPointPath, skippedTests) {
+  console.log(`>>> ${entryPointPath}`);
+
   // count individual test results
   const counter = countingReporter(consoleReporter);
   // ignore specific test failures
@@ -73,6 +78,8 @@ async function test(entryPointPath, skippedTests) {
 
   const {counts} = counter;
   console.log(`\nTotal: ${counts.pass} passed, ${counts.fail} failed, ${counts.skip} skipped`);
+  console.log();
+
   return counts.fail;
 }
 
