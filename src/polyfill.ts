@@ -1,5 +1,5 @@
-import { jURL } from "./url";
-import { URLSearchParams as jURLSearchParams } from "./search-params";
+import { jURL as URLImpl } from "./url";
+import { URLSearchParams as URLSearchParamsImpl } from "./search-params";
 
 declare global {
   interface Window {
@@ -25,28 +25,31 @@ if (OriginalURL && OriginalURLSearchParams && !(scope && scope.forceJURL)) {
   }
 }
 
-let URLPolyfill: typeof URL;
-let URLSearchParamsPolyfill: typeof URLSearchParams;
+let URLPolyfill: typeof URLImpl;
+let URLSearchParamsPolyfill: typeof URLSearchParamsImpl;
 if (hasWorkingUrl) {
-  URLPolyfill = OriginalURL!;
-  URLSearchParamsPolyfill = OriginalURLSearchParams!;
+  URLPolyfill = OriginalURL! as any;
+  URLSearchParamsPolyfill = OriginalURLSearchParams! as any;
 } else {
-  URLPolyfill = jURL as any;
-  URLSearchParamsPolyfill = jURLSearchParams as any;
+  URLPolyfill = URLImpl;
+  URLSearchParamsPolyfill = URLSearchParamsImpl;
+
+  const GlobalURL: typeof URL = URLPolyfill as any;
+  const GlobalURLSearchParams: typeof URLSearchParams = URLSearchParamsPolyfill as any;
   // Copy over the static methods
   if (OriginalURL) {
-    URLPolyfill.createObjectURL = function (blob) {
+    GlobalURL.createObjectURL = function (blob) {
       // IE extension allows a second optional options argument.
       // http://msdn.microsoft.com/en-us/library/ie/hh772302(v=vs.85).aspx
       return (OriginalURL.createObjectURL as Function).apply(OriginalURL, arguments);
     };
-    URLPolyfill.revokeObjectURL = function (url) {
+    GlobalURL.revokeObjectURL = function (url) {
       OriginalURL.revokeObjectURL(url);
     };
   }
   if (scope) {
-    scope.URL = URLPolyfill;
-    scope.URLSearchParams = URLSearchParamsPolyfill;
+    scope.URL = GlobalURL;
+    scope.URLSearchParams = GlobalURLSearchParams;
   }
 }
 
