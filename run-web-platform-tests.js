@@ -27,12 +27,16 @@ main().catch(e => {
 async function main() {
   let failures = 0;
 
-  failures += await test('./dist/url.js');
+  failures += await test('./dist/url.js', []);
+
+  // for the loose version, skip tests that require full IDNA UTS #46 support
+  const skippedLooseTests = require('./test/skip-loose.json');
+  failures += await test('./dist/url.loose.js', skippedLooseTests);
 
   process.exitCode = failures;
 }
 
-async function test(entryPointPath) {
+async function test(entryPointPath, skippedTests) {
   // count individual test results
   const counter = countingReporter(consoleReporter);
   // ignore specific test failures
@@ -42,6 +46,8 @@ async function test(entryPointPath) {
           // ignore URL setter tests for HTML elements
           name.startsWith('<a>')
           || name.startsWith('<area>')
+          // ignore explicitly skipped tests
+          || skippedTests.some(test => name.includes(test))
       );
     }
   });

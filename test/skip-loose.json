@@ -1,0 +1,14 @@
+[
+  "http://GOO\u00a0\u3000goo.com",
+  "http://GOO\u200b\u2060\ufeffgoo.com",
+  "http://\ufdd0zyx.com",
+  "http://%ef%b7%90zyx.com",
+  "https://\ufffd",
+  "https://%EF%BF%BD",
+  "http://Ｇｏ.com",
+  "http://％４１.com",
+  "http://%ef%bc%85%ef%bc%94%ef%bc%91.com",
+  "http://％００.com",
+  "http://%ef%bc%85%ef%bc%90%ef%bc%90.com",
+  "http://０Ｘｃ０．０２５０．０１"
+]
