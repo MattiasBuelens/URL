@@ -2,7 +2,7 @@ const path = require('path');
 
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
-const rollupTypescript2 = require('rollup-plugin-typescript2');
+const rollupDts = require('rollup-plugin-dts');
 const rollupBabel = require('rollup-plugin-babel');
 const {terser: rollupTerser} = require('rollup-plugin-terser');
 const rollupInject = require('rollup-plugin-inject');
@@ -47,10 +47,8 @@ function config(name, {
           'unorm': ['nfc', 'nfd', 'nfkc', 'nfkd']
         }
       }),
-      rollupTypescript2({
-        typescript: require('typescript'),
-        rollupCommonJSResolveHack: true,
-        objectHashIgnoreUnknownHack: true
+      rollupDts.ts({
+        tsconfig: './tsconfig.json'
       }),
       es5 ? rollupBabel({
         exclude: 'node_modules/idna-uts46/idna-map.js',
