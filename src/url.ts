@@ -1111,6 +1111,7 @@ function isURL(x: any): x is URL {
 class URL {
   /** @internal */
   _url: UrlRecord;
+  /** @internal */
   private readonly _query: URLSearchParams;
 
   constructor(url: string, base?: string | URL) {

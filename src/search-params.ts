@@ -3,7 +3,7 @@ import { isArray, isSequence, replaceArray, sequenceToArray, stableSort, support
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
 
-export type URLSearchParamsInit = Iterable<[string, string]> | { [name: string]: string } | string;
+export type URLSearchParamsInit = string[][] | Iterable<[string, string]> | Record<string, string> | string;
 
 function compareParams([key1]: [string, string], [key2]: [string, string]): number {
   return (key1 === key2) ? 0 : (key1 < key2) ? -1 : 1;
@@ -235,19 +235,19 @@ export class URLSearchParams implements Iterable<[string, string]> {
 
   // The value pairs to iterate over are the list name-value pairs
   // with the key being the name and the value being the value.
-  [Symbol.iterator]: () => URLSearchParamsIterator<[string, string]>; // implemented below
+  [Symbol.iterator]: () => Iterator<[string, string]>; // implemented below
 
   // iterable<string, string>
   // https://www.w3.org/TR/WebIDL-1/#idl-iterable
-  entries(): URLSearchParamsIterator<[string, string]> {
+  entries(): Iterator<[string, string]> {
     return new URLSearchParamsIterator(this._list, selectEntry);
   }
 
-  keys(): URLSearchParamsIterator<string> {
+  keys(): Iterator<string> {
     return new URLSearchParamsIterator(this._list, selectKey);
   }
 
-  values(): URLSearchParamsIterator<string> {
+  values(): Iterator<string> {
     return new URLSearchParamsIterator(this._list, selectValue);
   }
 
@@ -267,6 +267,7 @@ const selectEntry: PairSelector<[string, string]> = pair => [pair[0], pair[1]];
 const selectKey: PairSelector<string> = pair => pair[0];
 const selectValue: PairSelector<string> = pair => pair[1];
 
+/** @internal */
 class URLSearchParamsIterator<T> implements Iterator<T> {
   private readonly _list: Array<[string, string]>;
   private readonly _selector: PairSelector<T>;
