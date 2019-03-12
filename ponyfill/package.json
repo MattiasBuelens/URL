@@ -1,5 +1,5 @@
 {
   "name": "url-ponyfill",
-  "main": "../dist/ponyfill.loose.js",
+  "main": "../dist/ponyfill.loose",
   "module": "../dist/ponyfill.loose.mjs"
 }

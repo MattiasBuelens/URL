@@ -1,7 +1,7 @@
 {
   "name": "url-polyfill",
   "version": "0.5.7",
-  "main": "dist/polyfill.js",
+  "main": "dist/polyfill",
   "module": "dist/polyfill.mjs",
   "browser": "dist/polyfill.min.js",
   "types": "dist/types/polyfill.d.ts",
