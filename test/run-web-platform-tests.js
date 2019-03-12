@@ -9,7 +9,7 @@ const minimatch = require('minimatch');
 
 const readFileAsync = promisify(fs.readFile);
 
-const testsPath = path.resolve(__dirname, 'web-platform-tests/url');
+const testsPath = path.resolve(__dirname, '../web-platform-tests/url');
 const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
   'url-constructor.html',
   'url-origin.html',
@@ -27,17 +27,17 @@ main().catch(e => {
 async function main() {
   let failures = 0;
 
-  failures += await test('./dist/polyfill.js', true, []);
-  failures += await test('./dist/polyfill.min.js', true, []);
-  failures += await test('./dist/polyfill.es6.js', true, []);
-  failures += await test('./dist/ponyfill.js', false, []);
-  failures += await test('./dist/ponyfill.es6.js', false, []);
+  failures += await test('../dist/polyfill.js', true, []);
+  failures += await test('../dist/polyfill.min.js', true, []);
+  failures += await test('../dist/polyfill.es6.js', true, []);
+  failures += await test('../dist/ponyfill.js', false, []);
+  failures += await test('../dist/ponyfill.es6.js', false, []);
 
   // for the loose versions, skip tests that require full IDNA UTS #46 support
-  const skippedLooseTests = require('./test/skip-loose.json');
-  failures += await test('./dist/polyfill.loose.js', true, skippedLooseTests);
-  failures += await test('./dist/polyfill.loose.min.js', true, skippedLooseTests);
-  failures += await test('./dist/ponyfill.loose.js', false, skippedLooseTests);
+  const skippedLooseTests = require('./skip-loose.json');
+  failures += await test('../dist/polyfill.loose.js', true, skippedLooseTests);
+  failures += await test('../dist/polyfill.loose.min.js', true, skippedLooseTests);
+  failures += await test('../dist/ponyfill.loose.js', false, skippedLooseTests);
 
   process.exitCode = failures;
 }
