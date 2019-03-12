@@ -1,4 +1,4 @@
-import { inplace } from 'stable';
+import { inplace } from './vendor/stable';
 
 export const ALPHA = /[a-zA-Z]/;
 export const DIGIT = /[0-9]/;
