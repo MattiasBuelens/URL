@@ -27,14 +27,14 @@ main().catch(e => {
 async function main() {
   let failures = 0;
 
-  failures += await test('./dist/url.js', []);
-  failures += await test('./dist/url.min.js', []);
-  failures += await test('./dist/url.es6.js', []);
+  failures += await test('./dist/polyfill.js', []);
+  failures += await test('./dist/polyfill.min.js', []);
+  failures += await test('./dist/polyfill.es6.js', []);
 
   // for the loose versions, skip tests that require full IDNA UTS #46 support
   const skippedLooseTests = require('./test/skip-loose.json');
-  failures += await test('./dist/url.loose.js', skippedLooseTests);
-  failures += await test('./dist/url.loose.min.js', skippedLooseTests);
+  failures += await test('./dist/polyfill.loose.js', skippedLooseTests);
+  failures += await test('./dist/polyfill.loose.min.js', skippedLooseTests);
 
   process.exitCode = failures;
 }

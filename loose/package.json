@@ -1,6 +1,6 @@
 {
   "name": "url-polyfill-loose",
-  "main": "../dist/url.loose.js",
-  "module": "../dist/url.loose.mjs",
-  "browser": "../dist/url.loose.min.js"
+  "main": "../dist/polyfill.loose.js",
+  "module": "../dist/polyfill.loose.mjs",
+  "browser": "../dist/polyfill.loose.min.js"
 }

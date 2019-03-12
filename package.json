@@ -1,10 +1,10 @@
 {
   "name": "url-polyfill",
   "version": "0.5.7",
-  "main": "dist/url.js",
-  "module": "dist/url.mjs",
-  "browser": "dist/url.min.js",
-  "types": "dist/types/url.d.ts",
+  "main": "dist/polyfill.js",
+  "module": "dist/polyfill.mjs",
+  "browser": "dist/polyfill.min.js",
+  "types": "dist/types/polyfill.d.ts",
   "files": [
     "dist/",
     "loose/"

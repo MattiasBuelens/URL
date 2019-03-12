@@ -16,17 +16,18 @@ function config(name, {
   esm = false,
   minify = false
 } = {}) {
+  const outputName = `${name}${loose ? '.loose' : ''}${es5 ? '' : '.es6'}${minify ? '.min' : ''}`;
   return {
-    input: 'src/polyfill.ts',
+    input: `src/${name}.ts`,
     output: [
       {
-        file: `dist/${name}.js`,
+        file: `dist/${outputName}.js`,
         format: 'umd',
         name: 'URL',
         sourcemap: minify
       },
       esm ? {
-        file: `dist/${name}.mjs`,
+        file: `dist/${outputName}.mjs`,
         format: 'es',
         sourcemap: minify
       } : undefined
@@ -92,7 +93,7 @@ function config(name, {
           }
       ) : undefined,
       minify ? rollupVisualizer({
-        filename: `${name}.stats.html`,
+        filename: `${outputName}.stats.html`,
         sourcemap: true
       }) : undefined
     ].filter(Boolean)
@@ -101,7 +102,7 @@ function config(name, {
 
 function types(name) {
   return {
-    input: 'src/polyfill.ts',
+    input: `src/${name}.ts`,
     output: {
       file: `dist/types/${name}.d.ts`,
       format: 'es'
@@ -115,10 +116,10 @@ function types(name) {
 }
 
 module.exports = [
-  types('url'),
-  config('url', { es5: true, esm: true }),
-  config('url.min', { es5: true, minify: true }),
-  config('url.es6', { es5: false, esm: true }),
-  config('url.loose', { loose: true, es5: true, esm: true }),
-  config('url.loose.min', { loose: true, es5: true, minify: true })
+  types('polyfill'),
+  config('polyfill', { es5: true, esm: true }),
+  config('polyfill', { es5: true, minify: true }),
+  config('polyfill', { es5: false, esm: true }),
+  config('polyfill', { loose: true, es5: true, esm: true }),
+  config('polyfill', { loose: true, es5: true, minify: true })
 ];
