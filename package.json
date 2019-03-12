@@ -34,7 +34,6 @@
   "devDependencies": {
     "@babel/core": "^7.3.4",
     "@babel/helper-module-imports": "^7.0.0",
-    "@babel/preset-env": "^7.3.4",
     "@types/unorm": "^1.3.27",
     "idna-uts46": "^1.1.0",
     "minimatch": "^3.0.4",

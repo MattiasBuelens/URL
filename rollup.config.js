@@ -1,4 +1,5 @@
 const path = require('path');
+const ts = require('typescript');
 
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 const rollupCommonJS = require('rollup-plugin-commonjs');
@@ -48,10 +49,14 @@ function config(name, {
         }
       }),
       rollupDts.ts({
-        tsconfig: './tsconfig.json'
+        tsconfig: './tsconfig.json',
+        compilerOptions: {
+          target: es5 ? ts.ScriptTarget.ES5 : ts.ScriptTarget.ES2015
+        }
       }),
       es5 ? rollupBabel({
         exclude: 'node_modules/idna-uts46/idna-map.js',
+        babelrc: false,
         plugins: [
           [
             require('./build/babel-transform-method'),
