@@ -1,4 +1,4 @@
-import { jURL } from "./url";
+import { URL } from "./url";
 import { inplaceStableSort, isArray, isSequence, replaceArray, sequenceToArray, supportsSymbolIterator } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
@@ -71,7 +71,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
   /** @internal */
   readonly _list: Array<[string, string]>;
   /** @internal */
-  _url: jURL | null = null;
+  _url: URL | null = null;
 
   // https://url.spec.whatwg.org/#concept-urlsearchparams-new
   // URL Standard says the default value is '', but as undefined and '' have

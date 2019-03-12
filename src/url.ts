@@ -1108,7 +1108,7 @@ function isURL(x: any): x is URL {
   return true;
 }
 
-class URL {
+export class URL {
   /** @internal */
   _url: UrlRecord;
   /** @internal */
@@ -1391,5 +1391,3 @@ class URL {
     parseSilent(hash, null, this._url, ParserState.FRAGMENT);
   }
 }
-
-export { URL as jURL };
