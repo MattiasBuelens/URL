@@ -9,7 +9,7 @@ const OriginalURLSearchParams = scope && scope.URLSearchParams;
 
 // feature detect for URL constructor
 let hasWorkingUrl = false;
-if (OriginalURL && OriginalURLSearchParams && !(scope && scope.forceJURL)) {
+if (OriginalURL && OriginalURLSearchParams) {
   try {
     const u = new OriginalURL('b', 'http://a');
     u.pathname = 'c%20d';
@@ -18,15 +18,14 @@ if (OriginalURL && OriginalURLSearchParams && !(scope && scope.forceJURL)) {
   }
 }
 
-let URLPolyfill: typeof URLImpl;
-let URLSearchParamsPolyfill: typeof URLSearchParamsImpl;
-if (hasWorkingUrl) {
-  URLPolyfill = OriginalURL! as any;
-  URLSearchParamsPolyfill = OriginalURLSearchParams! as any;
-} else {
-  URLPolyfill = URLImpl;
-  URLSearchParamsPolyfill = URLSearchParamsImpl;
+const URLPolyfill: typeof URLImpl = hasWorkingUrl
+    ? OriginalURL! as any
+    : URLImpl;
+const URLSearchParamsPolyfill: typeof URLSearchParamsImpl = hasWorkingUrl
+    ? OriginalURLSearchParams! as any
+    : URLSearchParamsImpl;
 
+if (!hasWorkingUrl) {
   const GlobalURL: typeof URL = URLPolyfill as any;
   const GlobalURLSearchParams: typeof URLSearchParams = URLSearchParamsPolyfill as any;
   // Copy over the static methods
