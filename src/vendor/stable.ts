@@ -31,12 +31,6 @@ export function inplaceStableSort<T>(arr: T[], comp: Comparator<T>): T[] {
 // Execute the sort using the input array and a second buffer as work space.
 // Returns one of those two, containing the final result.
 function exec<T>(arr: T[], comp: Comparator<T>): T[] {
-  if (typeof (comp) !== 'function') {
-    comp = function (a, b) {
-      return String(a).localeCompare(b);
-    }
-  }
-
   // Short-circuit when there's nothing to sort.
   const len = arr.length;
   if (len <= 1) {
