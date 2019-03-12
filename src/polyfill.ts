@@ -1,11 +1,4 @@
-import { jURL as URLImpl } from "./url";
-import { URLSearchParams as URLSearchParamsImpl } from "./search-params";
-
-declare global {
-  interface Window {
-    forceJURL?: boolean;
-  }
-}
+import { URL as URLImpl, URLSearchParams as URLSearchParamsImpl } from "./ponyfill";
 
 const scope = typeof self !== 'undefined' ? self
     : typeof window !== 'undefined' ? window

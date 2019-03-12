@@ -7,7 +7,8 @@
   "types": "dist/types/polyfill.d.ts",
   "files": [
     "dist/",
-    "loose/"
+    "loose/",
+    "ponyfill/"
   ],
   "repository": {
     "type": "git",

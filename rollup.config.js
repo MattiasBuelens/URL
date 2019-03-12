@@ -121,5 +121,10 @@ module.exports = [
   config('polyfill', { es5: true, minify: true }),
   config('polyfill', { es5: false, esm: true }),
   config('polyfill', { loose: true, es5: true, esm: true }),
-  config('polyfill', { loose: true, es5: true, minify: true })
+  config('polyfill', { loose: true, es5: true, minify: true }),
+
+  types('ponyfill'),
+  config('ponyfill', { es5: true, esm: true }),
+  config('ponyfill', { es5: false, esm: true }),
+  config('ponyfill', { loose: true, es5: true, esm: true })
 ];
