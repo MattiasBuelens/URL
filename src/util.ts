@@ -1,5 +1,3 @@
-import { inplace } from './vendor/stable';
-
 export const ALPHA = /[a-zA-Z]/;
 export const DIGIT = /[0-9]/;
 export const HEX_DIGIT = /[0-9a-fA-F]/;
@@ -104,7 +102,7 @@ export function replaceArray<T>(dest: T[], src: T[]): void {
   dest.length = src.length;
 }
 
-export { inplace as stableSort };
+export { inplaceStableSort } from './vendor/stable';
 
 const mathMin = Math.min;
 const stringFromCharCode = String.fromCharCode;

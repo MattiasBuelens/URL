@@ -12,11 +12,11 @@ export type Comparator<T> = (a: T, b: T) => number;
 // A stable array sort, because `Array#sort()` is not guaranteed stable.
 // This is an implementation of merge sort, without recursion.
 
-const stable = function<T>(arr: ReadonlyArray<T>, comp: Comparator<T>): T[] {
+export function stableSort<T>(arr: ReadonlyArray<T>, comp: Comparator<T>): T[] {
   return exec(arr.slice(), comp);
-};
+}
 
-stable.inplace = function<T>(arr: T[], comp: Comparator<T>): T[] {
+export function inplaceStableSort<T>(arr: T[], comp: Comparator<T>): T[] {
   const result = exec(arr, comp);
 
   // This simply copies back if the result isn't in the original array,
@@ -26,12 +26,12 @@ stable.inplace = function<T>(arr: T[], comp: Comparator<T>): T[] {
   }
 
   return arr;
-};
+}
 
 // Execute the sort using the input array and a second buffer as work space.
 // Returns one of those two, containing the final result.
 function exec<T>(arr: T[], comp: Comparator<T>): T[] {
-  if (typeof(comp) !== 'function') {
+  if (typeof (comp) !== 'function') {
     comp = function (a, b) {
       return String(a).localeCompare(b);
     }
@@ -103,5 +103,3 @@ function pass<T>(arr: T[], comp: Comparator<T>, chk: number, result: T[]) {
     }
   }
 }
-
-export default stable;

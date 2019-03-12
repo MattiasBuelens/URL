@@ -1,5 +1,5 @@
 import { jURL } from "./url";
-import { isArray, isSequence, replaceArray, sequenceToArray, stableSort, supportsSymbolIterator } from "./util";
+import { inplaceStableSort, isArray, isSequence, replaceArray, sequenceToArray, supportsSymbolIterator } from "./util";
 import { parseUrlEncoded, serializeUrlEncoded } from "./urlencode";
 import { toUSVString } from "./usvstring";
 
@@ -223,7 +223,7 @@ export class URLSearchParams implements Iterable<[string, string]> {
     // 1. Sort all name-value pairs, if any, by their names.
     //    Sorting must be done by comparison of code units.
     //    The relative order between name-value pairs with equal names must be preserved.
-    stableSort(this._list, compareParams);
+    inplaceStableSort(this._list, compareParams);
     // 2. Run the update steps.
     update(this);
   }
