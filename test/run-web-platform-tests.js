@@ -9,7 +9,7 @@ const minimatch = require('minimatch');
 
 const readFileAsync = promisify(fs.readFile);
 
-const testsPath = path.resolve(__dirname, '../web-platform-tests/url');
+const testsPath = path.resolve(__dirname, './web-platform-tests/url');
 const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : [
   'url-constructor.html',
   'url-origin.html',
