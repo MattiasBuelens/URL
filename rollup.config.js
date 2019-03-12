@@ -57,7 +57,6 @@ function config(name, {
       }),
       es5 ? rollupBabel({
         exclude: 'node_modules/idna-uts46/idna-map.js',
-        babelrc: false,
         plugins: [
           [
             require('./build/babel-transform-method'),
