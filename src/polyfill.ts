@@ -18,16 +18,19 @@ if (OriginalURL && OriginalURLSearchParams) {
   }
 }
 
-const URLPolyfill: typeof URLImpl = hasWorkingUrl
+export type URL = URLImpl;
+export type URLSearchParams = URLSearchParamsImpl;
+
+export const URL: typeof URLImpl = hasWorkingUrl
     ? OriginalURL! as any
     : URLImpl;
-const URLSearchParamsPolyfill: typeof URLSearchParamsImpl = hasWorkingUrl
+export const URLSearchParams: typeof URLSearchParamsImpl = hasWorkingUrl
     ? OriginalURLSearchParams! as any
     : URLSearchParamsImpl;
 
 if (!hasWorkingUrl) {
-  const GlobalURL: typeof URL = URLPolyfill as any;
-  const GlobalURLSearchParams: typeof URLSearchParams = URLSearchParamsPolyfill as any;
+  const GlobalURL: typeof window.URL = URL as any;
+  const GlobalURLSearchParams: typeof window.URLSearchParams = URLSearchParams as any;
   // Copy over the static methods
   if (OriginalURL) {
     GlobalURL.createObjectURL = function (blob) {
@@ -44,8 +47,3 @@ if (!hasWorkingUrl) {
     scope.URLSearchParams = GlobalURLSearchParams;
   }
 }
-
-export {
-  URLPolyfill as URL,
-  URLSearchParamsPolyfill as URLSearchParams
-};
