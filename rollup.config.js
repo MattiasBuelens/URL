@@ -97,13 +97,10 @@ function config(name, {
 function types(name) {
   return {
     input: 'src/polyfill.ts',
-    output: [
-      {
-        file: `dist/types/${name}.d.ts`,
-        format: 'es',
-        name: 'URL'
-      }
-    ],
+    output: {
+      file: `dist/types/${name}.d.ts`,
+      format: 'es'
+    },
     plugins: [
       rollupDts.dts({
         tsconfig: './tsconfig.json'
