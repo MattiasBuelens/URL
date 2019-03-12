@@ -23,7 +23,7 @@ function config(name, {
       {
         file: `dist/${outputName}.js`,
         format: 'umd',
-        name: 'URL',
+        name: 'URLPolyfill',
         sourcemap: minify
       },
       esm ? {
