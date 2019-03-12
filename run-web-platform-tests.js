@@ -27,19 +27,22 @@ main().catch(e => {
 async function main() {
   let failures = 0;
 
-  failures += await test('./dist/polyfill.js', []);
-  failures += await test('./dist/polyfill.min.js', []);
-  failures += await test('./dist/polyfill.es6.js', []);
+  failures += await test('./dist/polyfill.js', true, []);
+  failures += await test('./dist/polyfill.min.js', true, []);
+  failures += await test('./dist/polyfill.es6.js', true, []);
+  failures += await test('./dist/ponyfill.js', false, []);
+  failures += await test('./dist/ponyfill.es6.js', false, []);
 
   // for the loose versions, skip tests that require full IDNA UTS #46 support
   const skippedLooseTests = require('./test/skip-loose.json');
-  failures += await test('./dist/polyfill.loose.js', skippedLooseTests);
-  failures += await test('./dist/polyfill.loose.min.js', skippedLooseTests);
+  failures += await test('./dist/polyfill.loose.js', true, skippedLooseTests);
+  failures += await test('./dist/polyfill.loose.min.js', true, skippedLooseTests);
+  failures += await test('./dist/ponyfill.loose.js', false, skippedLooseTests);
 
   process.exitCode = failures;
 }
 
-async function test(entryPointPath, skippedTests) {
+async function test(entryPointPath, isPolyfill, skippedTests) {
   console.log(`>>> ${entryPointPath}`);
 
   // count individual test results
@@ -70,6 +73,10 @@ async function test(entryPointPath, skippedTests) {
       delete window.URL;
       delete window.URLSearchParams;
       window.eval(code);
+      if (!isPolyfill) {
+        window.URL = window.URLPolyfill.URL;
+        window.URLSearchParams = window.URLPolyfill.URLSearchParams;
+      }
     },
     filter(testPath) {
       return filterGlobs.some(glob => minimatch(testPath, glob));
