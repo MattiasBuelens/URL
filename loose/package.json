@@ -2,5 +2,6 @@
   "name": "url-polyfill-loose",
   "main": "../dist/polyfill.loose",
   "module": "../dist/polyfill.loose.mjs",
-  "browser": "../dist/polyfill.loose.min.js"
+  "browser": "../dist/polyfill.loose.min.js",
+  "types": "../dist/types/polyfill.d.ts"
 }
