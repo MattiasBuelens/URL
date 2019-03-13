@@ -30,7 +30,8 @@
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "test": "node test/run-web-platform-tests.js",
-    "sync-wpt": "git submodule update --init"
+    "sync-wpt": "git submodule update --init",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@babel/core": "^7.3.4",
