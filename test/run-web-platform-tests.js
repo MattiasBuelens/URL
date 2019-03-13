@@ -27,23 +27,23 @@ main().catch(e => {
 async function main() {
   let failures = 0;
 
-  failures += await test('../dist/polyfill.js', true, []);
-  failures += await test('../dist/polyfill.min.js', true, []);
-  failures += await test('../dist/polyfill.es6.js', true, []);
-  failures += await test('../dist/ponyfill.js', false, []);
-  failures += await test('../dist/ponyfill.es6.js', false, []);
+  failures += await test('polyfill.js', true, []);
+  failures += await test('polyfill.min.js', true, []);
+  failures += await test('polyfill.es6.js', true, []);
+  failures += await test('ponyfill.js', false, []);
+  failures += await test('ponyfill.es6.js', false, []);
 
   // for the loose versions, skip tests that require full IDNA UTS #46 support
   const skippedLooseTests = require('./skip-loose.json');
-  failures += await test('../dist/polyfill.loose.js', true, skippedLooseTests);
-  failures += await test('../dist/polyfill.loose.min.js', true, skippedLooseTests);
-  failures += await test('../dist/ponyfill.loose.js', false, skippedLooseTests);
+  failures += await test('polyfill.loose.js', true, skippedLooseTests);
+  failures += await test('polyfill.loose.min.js', true, skippedLooseTests);
+  failures += await test('ponyfill.loose.js', false, skippedLooseTests);
 
   process.exitCode = failures;
 }
 
-async function test(entryPointPath, isPolyfill, skippedTests) {
-  console.log(`>>> ${entryPointPath}`);
+async function test(fileName, isPolyfill, skippedTests) {
+  console.log(`>>> ${fileName}`);
 
   // count individual test results
   const counter = countingReporter(consoleReporter);
@@ -61,7 +61,7 @@ async function test(entryPointPath, isPolyfill, skippedTests) {
   });
 
   // load entry point
-  const code = await readFileAsync(entryPointPath, {encoding: 'utf8'});
+  const code = await readFileAsync(path.join(__dirname, '../dist/', fileName), {encoding: 'utf8'});
 
   await wptRunner(testsPath, {
     rootURL: 'url/',
