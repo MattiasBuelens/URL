@@ -24,12 +24,14 @@ function config(name, {
         file: `dist/${outputName}.js`,
         format: 'umd',
         name: 'URLPolyfill',
-        sourcemap: minify
+        sourcemap: minify,
+        indent: false
       },
       esm ? {
         file: `dist/${outputName}.mjs`,
         format: 'es',
-        sourcemap: minify
+        sourcemap: minify,
+        indent: false
       } : undefined
     ].filter(Boolean),
     plugins: [
