@@ -50,13 +50,11 @@ function config(name, {
         }
       }),
       rollupDts.ts({
-        tsconfig: './tsconfig.json',
-        compilerOptions: {
-          target: es5 ? ts.ScriptTarget.ES5 : ts.ScriptTarget.ES2015
-        }
+        tsconfig: './tsconfig.json'
       }),
       es5 ? rollupBabel({
         exclude: 'node_modules/idna-uts46/idna-map.js',
+        extensions: ['.ts', '.js'],
         plugins: [
           [
             require('./build/babel-transform-method'),
